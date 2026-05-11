@@ -1,0 +1,32 @@
+# Quantum Tools Suite Implementation Checklist
+
+## 1. OTP Validation Hardening ✅
+- [x] Create timing-safe comparison API endpoint (`/api/v1/otp/validate`)
+- [x] Wire frontend `ValidateTab` to use real backend API instead of client-side mocks
+- [x] Sync API validation status to local history display
+- [x] Implement error handling for expired, revoked, or used OTPs
+
+## 2. Backend API Persistence ✅
+- [x] Create `/api/v1/pki` route using `generated_keys` schema
+- [x] Create `/api/v1/tokenize` route using `generated_keys` schema
+- [x] Create `/api/v1/comm` route using `generated_keys` schema
+- [x] Create `/api/v1/cloud` route using `generated_keys` schema
+- [x] Ensure all routes fetch DB stats (quantum_source_count, avg_quality, etc.)
+
+## 3. Frontend Wiring ✅
+- [x] Update PKI page to fetch DB history and persist new generations
+- [x] Update Tokenization page to fetch DB history and persist new generations
+- [x] Update Secure Comms page to fetch DB history and persist new generations
+- [x] Update Cloud Security page to fetch DB history and persist new generations
+- [x] Merge local fallback history with DB history for offline resilience
+
+## 4. Security Hardening ✅
+- [x] Mask secrets (tokens, keys, seeds) in UI histories
+- [x] Fix entropy source labeling (explicitly mark mocked entropy as "quantum-seeded (simulated)")
+- [x] Ensure single-use enforcement on OTPs
+
+## 5. UI/UX Consistency ✅
+- [x] Validate "Golden Quantum" theme applied to all 7 modules
+- [x] Ensure real-time telemetry visualizers render properly for simulated processes
+- [x] Ensure API Docs (`ServiceAPIPanel`) accurately reflect deployed features
+- [x] Move Quantum Vault to Quantum Tools section and ensure full functionality

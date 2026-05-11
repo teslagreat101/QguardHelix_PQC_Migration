@@ -1,0 +1,230 @@
+Implement a complete Quantum QRNG page/module inside my existing Qguard Helix Quantum Cyber Defense Platform.
+This module must act as an enterprise-grade quantum-seeded entropy command center, not just a simple random number generator.
+The Quantum QRNG module should generate, validate, monitor, audit, and distribute quantum-seeded randomness safely across all QGuard tools including:
+Encryption ServicesSecurity Authentication / OTPDigital Certificates / PKITokenizationSecure CommunicationsCloud SecurityQuantum Governance
+The final implementation must be professional, secure, production-ready, fully wired to backend APIs, hooks, SSE telemetry, and Supabase history/audit storage.
+
+1. Route and Page Architecture
+Create or update the Quantum QRNG page at:
+/dashboard/quantum
+Required files:
+/src/app/dashboard/quantum/page.tsx/src/app/dashboard/quantum/loading.tsx
+Recommended supporting folders:
+/src/components/quantum-qrng/src/hooks/quantum/useQuantumEntropy.ts/src/hooks/quantum/useQuantumQrng.ts/src/hooks/quantum/useQuantumTelemetry.ts/src/lib/quantum/qrng.ts/src/lib/quantum/entropy-health.ts/src/lib/quantum/kdf.ts/src/lib/sse/quantum-events.ts/src/types/quantum-qrng.ts
+Ensure the implementation is modular, reusable, scalable, and enterprise-ready.
+
+2. Core Product Positioning
+The page should be presented as:
+Quantum QRNGQuantum-Seeded Entropy Service for Post-Quantum Security
+Use this product description:
+Quantum QRNG provides quantum-seeded entropy for secure key generation, OTPs, nonces, certificates, tokenization, secure communications, cloud security, and post-quantum cryptographic workflows.
+Important accuracy rule:
+Do not falsely claim that liboqs, OQS-OpenSSL, OQS Provider, or Qiskit AerSimulator generate real quantum randomness.
+Use accurate labeling:
+Hardware QRNG / QRNG API = Production quantum entropy sourceQiskit AerSimulator = Simulation / demo entropy source onlyliboqs / OQS = Post-quantum cryptographic algorithms, not entropy sources
+Use this wording where appropriate:
+Quantum-seeded, post-quantum-secured entropy service
+
+3. Golden Quantum UI Theme
+Apply the existing Golden Quantum Theme used across the QGuard dashboard.
+Design requirements:
+Dark enterprise dashboard backgroundMetallic gold accentsGlassmorphism cardsSubtle gold bordersSoft glowing hover effectsGolden light sweep animationsPremium typographyAnimated telemetry linesReal-time terminal style panelsHigh-contrast readable textResponsive layoutProfessional enterprise spacing
+Every card, panel, modal, tab, table, output field, and KPI must use:
+Glassmorphism backgroundGold border glowRounded cornersSoft shadowPremium hover animationClear visual hierarchyResponsive layout
+Avoid plain black pages.
+The module must feel like a premium quantum entropy operations console.
+
+4. Main Page Layout
+Use this layout:
+Header:Quantum QRNGQuantum-Seeded Entropy Service for Post-Quantum SecuritySubtitle:Generate, validate, monitor, audit, and distribute quantum-seeded randomness across QGuard’s post-quantum security workflows.Top KPI Cards:Entropy Quality ScoreLive ThroughputSource HealthEntropy Pool AvailableRequests TodayFailure RateLast Health CheckProduction Mode StatusMain Tabs / Sections:OverviewEntropy GeneratorHealth TestsKDF PipelineKey & Secret GeneratorOTP Seed GeneratorPQC IntegrationEntropy PoolLive TelemetryAPI ConsoleGeneration HistorySettingsAudit Logs
+
+5. Entropy Source Dashboard
+Create an Entropy Source Dashboard that shows where randomness is coming from and whether the source is production-safe.
+Display fields:
+Entropy SourceSource TypeModeSource HealthEntropy Quality ScoreLive ThroughputBitstream HealthSource UptimeLast Health CheckSource LatencyFailure StatusFallback StatusProduction Safe: Yes / No
+Supported entropy sources:
+Hardware QRNGQRNG APIInternal Entropy PoolHybrid Entropy PoolQiskit AerSimulator fallbackSystem CSPRNG fallback
+Source modes:
+ProductionSimulationDemoFallbackDegradedOffline
+Rules:
+Hardware QRNG and verified QRNG API may be labeled as production quantum entropy.Qiskit AerSimulator must always be labeled as simulation/demo only.System CSPRNG fallback must be clearly labeled as classical fallback.If the source is degraded, display warning status.If the source is simulation only, display a visible “Not Production Quantum Entropy” badge.
+
+6. Live Quantum Entropy Generator
+Create a secure Live Entropy Generator panel.
+Functions:
+Generate Random BytesGenerate Hex EntropyGenerate Base64 EntropyGenerate UUIDGenerate Secure NonceGenerate Session SeedGenerate API SecretGenerate Recovery CodeGenerate PasswordGenerate OTP SeedGenerate Certificate Serial EntropyGenerate Tokenization SeedGenerate Cloud Wrapping Seed
+User controls:
+Output lengthEncoding formatEntropy sourcePurposeExpirationOutput typeMask / reveal outputCopy outputDownload outputSave metadata to history
+Supported output formats:
+HexBase64Base64URLRaw bytesUUIDNumericAlphanumericJSONPEM-compatible seed metadata
+Security behavior:
+Mask sensitive output by defaultReveal requires user actionCopy action must create audit eventNever log plaintext output to consoleNever store plaintext entropy output in SupabaseOnly store fingerprints, metadata, and masked preview
+
+7. Entropy Health Tests Panel
+Create a dedicated Entropy Quality & Health Tests section.
+Display real-time or batch test results for:
+Repetition Count TestAdaptive Proportion TestFrequency / Monobit TestRuns TestBit BalanceCompression RatioMin-Entropy EstimateBias DetectionSource Drift DetectionFailure ThresholdWindow SizeSample SizePass / Warning / Fail Status
+Each test should show:
+Test NameCurrent ResultThresholdStatusLast RunSample SizeDetailsRecommended Action
+Health status categories:
+PassedWarningFailedNot Enough SamplesSource DegradedSource OfflineSimulation Only
+If a health test fails:
+Stop production output if configuredMark source as degradedTrigger SSE telemetry eventLog audit eventShow user-friendly warningRecommend fallback or retry
+
+8. QRNG → HKDF-SHA3-256 Derivation Pipeline
+Raw entropy should not simply be exposed as final cryptographic key material.
+Implement a derivation pipeline:
+Raw QRNG Entropy→ Entropy Health Tests→ Conditioning→ HKDF-SHA3-256→ Purpose-Bound Key Material→ Secure Output→ Audit Metadata
+Display this pipeline visually as a step-by-step flow.
+Pipeline stages:
+Entropy AcquiredHealth Tests PassedConditioning AppliedHKDF-SHA3-256 Derivation CompletePurpose Binding CompleteFingerprint GeneratedOutput ReadyAudit Event Saved
+Purpose-bound output types:
+AES-256-GCM KeyOTP SeedSession KeyNonceToken SeedCertificate Serial EntropyML-KEM Session SeedSecure Communication SeedCloud Wrapping SeedAPI SecretJWT SecretWebhook Secret
+Required metadata:
+PurposeAlgorithmSourceEntropy Quality ScoreKDF UsedHash UsedOutput LengthFingerprintCreated AtExpires AtUser IDSession ID
+
+9. Key and Secret Generation Panel
+Create a Key & Secret Generator panel powered by QRNG-derived entropy.
+Generate:
+AES-256-GCM keysHKDF-derived keysHMAC keysAPI keysJWT secretsWebhook secretsDatabase encryption keysFile encryption seedsBackup recovery keysCloud wrapping seedsSecure session keysDevice pairing secretsRecovery codes
+Each generated item should display:
+Artifact TypeAlgorithmKey LengthEntropy SourceEntropy Quality ScoreFingerprintPurposeOwnerCreated TimeExpirationRotation PolicyStorage StatusReveal / Copy controlsAudit Status
+Security rules:
+Do not store plaintext keys.Do not log plaintext keys.Store only fingerprints, masked preview, encrypted references, wrapped key metadata, and audit records.Copy and reveal actions must be auditable.High-risk exports should optionally require re-authentication.
+
+10. Quantum OTP Seed Generator
+Create a Quantum OTP Seed Generator that feeds the /dashboard/otp module.
+Features:
+Generate OTP seedGenerate numeric OTPGenerate alphanumeric OTPConfigure OTP lengthConfigure expiration timeSelect OTP purposeBind OTP to authenticated userBind OTP to sessionBind OTP to purposeHash OTP using SHA3-256 or SHA3-512Verify using timing-safe comparisonShow backend-synchronized countdown timer
+OTP purposes:
+LoginTransactionDevice VerificationAdmin ApprovalSecure Vault UnlockKey Export ApprovalCertificate Issuance ApprovalCloud Operation Approval
+Display:
+OTP generated statusMasked OTP outputReveal OTPCopy OTPCountdown timerVerification statusBackend sync statusPurpose bindingSession bindingHash statusAudit status
+Security requirements:
+Never store plaintext OTP after generation.Store only OTP hash, salt/nonce if used, purpose, expiry, and metadata.Use constant-time comparison for verification.Reject expired OTPs.Reject purpose mismatch.Reject session mismatch.Reject reused OTPs if one-time mode is enabled.Rate-limit OTP generation and verification.
+
+11. Post-Quantum Cryptography Integration
+Connect QRNG-derived entropy into the QGuard PQC stack.
+Support the following cryptographic stack:
+ML-KEM-768X25519 + ML-KEM HybridML-DSA-65Ed25519 + ML-DSA HybridAES-256-GCMHKDF-SHA3-256SHA3-256SHA3-512
+Mandatory libraries and integrations:
+Open Quantum Safe liboqsOQS-OpenSSL Hybrid BuildsOQS Provider
+Important distinction:
+QRNG provides entropy.HKDF-SHA3-256 derives purpose-bound key material.liboqs/OQS provides post-quantum algorithms.AES-256-GCM provides symmetric encryption.SHA3-256/SHA3-512 provides hashing and fingerprints.
+PQC integration functions:
+Generate ML-KEM session seed metadataGenerate X25519 + ML-KEM hybrid session material metadataGenerate ML-DSA signing seed metadataGenerate Ed25519 + ML-DSA hybrid signing seed metadataGenerate AES-256-GCM key materialGenerate SHA3 fingerprintsGenerate certificate serial entropyGenerate secure communication session seed
+Do not expose private keys in the UI unless explicitly designed as a secure masked/reveal demo, and never store plaintext private keys.
+
+12. Live Telemetry Terminal
+Add a real-time Live Telemetry Terminal powered by SSE.
+The terminal should show transparent backend steps such as:
+[QRNG] Entropy request received[QRNG] Source selected: Hardware QRNG[QRNG] Sample acquired: 4096 bits[HEALTH] Repetition Count Test passed[HEALTH] Adaptive Proportion Test passed[HEALTH] Monobit frequency check passed[KDF] HKDF-SHA3-256 derivation started[KDF] Purpose binding: AES-256-GCM key[KDF] Derivation complete[OUTPUT] Secure artifact generated[AUDIT] Metadata saved to Supabase[SSE] Dashboard telemetry updated
+Telemetry events should include:
+Entropy request createdEntropy source selectedHealth test startedHealth test passedHealth test failedKDF derivation startedKDF derivation completedArtifact generatedCopy action performedReveal action performedAudit event savedSource degradedFallback activatedRate limit triggeredError occurred
+
+13. Entropy Pool Monitor
+Create an Entropy Pool Monitor for high-volume enterprise operations.
+Track:
+Available entropy poolReserved entropyConsumed entropyRefill rateSource latencyPool healthQueue depthPending requestsFailed requestsFallback source statusAverage generation timePeak requestsCurrent active sessions
+Pool states:
+HealthyLow EntropyRefillingDegradedFallback ActiveOfflineRate Limited
+Use cases:
+Bulk key generationOTP burstsCertificate generationCloud secret rotationSecure communication sessionsTokenization jobs
+If entropy pool is low:
+Warn userQueue non-critical requestsPrioritize critical security operationsTrigger refillUse configured fallback only if allowedLog telemetry event
+
+14. QRNG API Console
+Create a developer-facing QRNG API Console inside the page.
+Suggested API routes:
+POST /api/quantum/qrng/randomPOST /api/quantum/qrng/keyPOST /api/quantum/qrng/otp-seedPOST /api/quantum/qrng/noncePOST /api/quantum/qrng/secretPOST /api/quantum/qrng/deriveGET  /api/quantum/qrng/eventsGET  /api/quantum/qrng/healthGET  /api/quantum/qrng/historyGET  /api/quantum/qrng/pool
+API Console should show:
+API key statusAuthenticated userRate limitLast requestRequest volumeSuccess rateFailed requestsAverage latencyRecent API eventsExample requestExample response
+Example request types:
+Generate entropyGenerate AES keyGenerate OTP seedGenerate nonceGenerate API secretRun health checkGet entropy pool statusStream SSE events
+
+15. Generation History and Audit Logs
+Every QRNG event should be auditable without storing sensitive raw output.
+Create a Generation History panel.
+Store and display:
+Event IDUser IDSession IDEntropy sourceSource modePurposeOutput typeOutput fingerprintMasked previewOutput lengthAlgorithm pipelineKDF usedHash usedQuality scoreHealth test resultCreated atExpires atStatusIP / device metadataAudit status
+Never store:
+Plaintext keysPlaintext OTPsRaw entropy seed materialPrivate signing seedsRaw tokenization secretsUnencrypted sensitive outputs
+History filters:
+Output typePurposeEntropy sourceStatusDate rangeHealth test resultProduction vs simulationUser/session
+
+16. Security Controls
+Add strong operational security controls.
+Required security controls:
+Mask generated secrets by defaultReveal requires explicit user actionCopy button logs audit eventDownload/export can require re-authenticationNo plaintext secrets in browser logsNo plaintext secrets in server logsNo plaintext secrets in SupabaseRate limit generation endpointsBind outputs to authenticated userBind outputs to active sessionExpire sensitive outputsAllow revoke/delete metadataValidate all input lengths and formatsSanitize all UI outputProtect against replayProtect against cross-user access
+Optional advanced controls:
+Require MFA for high-risk exportsRequire admin approval for bulk generationSet per-user daily generation quotaSet per-purpose maximum output lengthBlock generation if entropy source fails health testRequire hardware QRNG only for production mode
+
+17. Admin and Developer Settings
+Create a Settings panel.
+Settings:
+Default entropy sourceEnable hardware QRNGEnable QRNG APIEnable Qiskit simulator fallbackEnable system CSPRNG fallbackAllow exportRequire audit loggingRequire re-authentication for reveal/exportMaximum output lengthDefault output formatDefault KDFDefault hashDefault key purposeDefault OTP lengthDefault OTP expiryRate limit per userRate limit per endpointRetention periodHealth test thresholdsFallback policyProduction mode enforcement
+Fallback policy options:
+Never fallbackFallback to QRNG APIFallback to hardware QRNGFallback to CSPRNG with warningFallback to simulator only in demo mode
+
+18. Backend API and Hooks
+Fully wire frontend to backend APIs.
+Create hooks:
+useQuantumEntropy()useQuantumQrng()useQuantumEntropyHealth()useQuantumDerivation()useQuantumSecretGenerator()useQuantumOtpSeed()useQuantumEntropyPool()useQuantumTelemetry()useQuantumQrngHistory()useQuantumQrngSettings()
+Each hook should support:
+loading stateerror statesuccess stateretryabort/cancel requestSSE updatestyped responsessecure state handling
+Backend should support:
+Generate entropyRun health testsDerive output using HKDF-SHA3-256Generate artifactsSave metadata to SupabaseStream SSE telemetryFetch generation historyFetch entropy pool statusUpdate settingsWrite audit logs
+
+19. SSE Telemetry Endpoints
+Implement SSE event streams for real-time UI updates.
+Suggested endpoints:
+GET /api/quantum/qrng/eventsGET /api/quantum/qrng/health/eventsGET /api/quantum/qrng/pool/eventsGET /api/quantum/qrng/history/events
+SSE event types:
+qrng.request.createdqrng.source.selectedqrng.health.startedqrng.health.passedqrng.health.failedqrng.kdf.startedqrng.kdf.completedqrng.artifact.generatedqrng.pool.updatedqrng.source.degradedqrng.fallback.activatedqrng.audit.savedqrng.error
+Each SSE payload should include:
+event_iduser_idsession_idtimestampsourcestatusmessageseveritymetadata
+
+20. Supabase Database Requirements
+Create or extend Supabase tables to support the QRNG module.
+Suggested tables:
+quantum_entropy_eventsquantum_entropy_health_testsquantum_entropy_pool_eventsquantum_qrng_artifactsquantum_qrng_audit_logsquantum_qrng_api_requestsquantum_qrng_error_logsquantum_qrng_settingsquantum_qrng_sse_events
+Every user-owned table must include:
+user_id uuid references auth.users(id) on delete cascade
+Security requirements:
+Enable Row Level SecurityUsers can only access their own QRNG recordsDo not store plaintext secretsStore fingerprints and metadata onlyUse indexes for user_id, created_at, source, output_type, statusUse updated_at triggersAdd audit triggers for sensitive changes
+Recommended fields for quantum_entropy_events:
+iduser_idsession_idsourcesource_modepurposeoutput_typeoutput_lengthoutput_fingerprintmasked_previewkdfhash_algorithmquality_scorehealth_statusstatusmetadatacreated_atexpires_at
+Recommended fields for quantum_entropy_health_tests:
+iduser_identropy_event_idtest_namesample_sizethresholdresult_valuestatusdetailscreated_at
+Recommended fields for quantum_qrng_audit_logs:
+iduser_idevent_typeentity_typeentity_idactionseverityip_addressdevice_metadatadetailscreated_at
+
+21. Loading Page Requirements
+The loading.tsx file must match the Golden Quantum Theme.
+Loading UI should include:
+Golden shimmer skeleton cardsEntropy dashboard placeholderHealth test placeholderLive terminal placeholderGeneration history placeholderSoft glowing bordersGlassmorphism panelsNo plain spinner-only loading screen
+
+22. Error Handling Requirements
+Replace vague errors with accurate, actionable messages.
+Examples:
+Entropy source unavailable. Please select another source or retry.Health test failed. Production output has been blocked by policy.QRNG API timeout. Fallback policy is disabled.Qiskit AerSimulator is demo-only and cannot be used in production mode.Output length exceeds the configured maximum.Rate limit reached. Try again later.Audit save failed. Generated output was not persisted.Session mismatch. Refresh the page and try again.
+Each error should include:
+User-friendly messageTechnical details in dev mode onlyRecovery actionTelemetry eventAudit log where appropriate
+
+23. Dashboard Integration
+Quantum QRNG must feed other QGuard tools.
+Integration targets:
+/dashboard/keys/dashboard/otp/dashboard/pki/dashboard/tokenize/dashboard/comm/dashboard/cloud/dashboard/quantum-governance
+Examples:
+Keys module uses QRNG-derived entropy for AES-256-GCM keys.OTP module uses QRNG-derived OTP seeds.PKI module uses QRNG entropy for certificate serials and signing seed metadata.Tokenization module uses QRNG token seeds.Secure Communications module uses QRNG session seeds.Cloud Security module uses QRNG cloud wrapping seeds.Quantum Governance module audits QRNG source usage and entropy policy compliance.
+Add reusable service functions so other modules can request entropy from QRNG securely.
+
+24. Acceptance Criteria
+The implementation is complete only when:
+/dashboard/quantum page exists and renders correctlyloading.tsx exists and matches Golden Quantum ThemeEntropy source dashboard worksLive entropy generator worksHealth tests display real results/statusHKDF-SHA3-256 derivation pipeline is visible and functionalKey and secret generation worksOTP seed generation worksPQC integration metadata is supportedEntropy pool monitor updates in real timeLive telemetry terminal streams SSE eventsAPI console displays endpoint usage and rate limitsGeneration history saves and reloads metadataAudit logs are created for reveal/copy/export eventsSettings panel controls QRNG behaviorAll outputs are masked by defaultNo plaintext secrets are stored in SupabaseNo plaintext secrets are loggedQiskit simulator is clearly labeled as demo/simulation onlyProduction source status is clearly displayedAll API hooks are properly wiredSSE telemetry updates the dashboard in real timeUI uses Golden Quantum Theme consistentlyThe module is responsive, polished, and enterprise-grade
+
+25. Final Goal
+Build the Quantum QRNG module as the secure entropy foundation of Qguard Helix.
+It must provide:
+Quantum-seeded entropyHealth-validated randomnessHKDF-SHA3-256 derivationSecure key and OTP seed generationPQC workflow supportReal-time telemetryAudit-ready historySupabase-backed metadataGolden Quantum enterprise UIProduction-safe security controls
+The final experience should feel like a premium Quantum Entropy Operations Center for enterprise post-quantum security.
