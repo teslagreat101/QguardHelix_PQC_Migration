@@ -415,6 +415,10 @@ CREATE TABLE IF NOT EXISTS public.vault_user_keys (
   enc_public_key  TEXT,            -- ML-KEM-768 public key (hex)
   sign_public_key TEXT,            -- ML-DSA-65 public key (hex)
   key_version     INT NOT NULL DEFAULT 1,
+  -- KDF parameters for zero-knowledge derivation
+  kdf_salt        TEXT,
+  kdf_algorithm   TEXT DEFAULT 'PBKDF2-SHA256',
+  kdf_params      JSONB DEFAULT '{}',
   created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

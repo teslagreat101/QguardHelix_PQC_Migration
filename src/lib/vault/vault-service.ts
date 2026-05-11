@@ -239,7 +239,7 @@ export async function ensureVaultProfile() {
     .from('vault_user_profiles')
     .select('*')
     .eq('user_id', user.id)
-    .single()
+    .maybeSingle()
 
   if (existing) return existing
 
@@ -670,7 +670,7 @@ export async function fetchUserKeys(): Promise<{ wrapped_bundle: string; enc_pub
   const { data, error } = await supabase
     .from('vault_user_keys')
     .select('wrapped_bundle, enc_public_key, sign_public_key')
-    .single()
+    .maybeSingle()
 
   if (error && error.code !== 'PGRST116') throw error  // PGRST116 = no rows
   return data || null

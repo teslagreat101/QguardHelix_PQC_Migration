@@ -10,7 +10,7 @@ import { ed25519 } from '@noble/curves/ed25519.js'
 export function generateHybridEncryptionKeys() {
   const xSecret = x25519.utils.randomPrivateKey()
   const xPublic = x25519.getPublicKey(xSecret)
-  const mlKeys = ml_kem768.generateKeyPair()
+  const mlKeys = ml_kem768.keygen()
   
   return {
     x25519: { secretKey: xSecret, publicKey: xPublic },
@@ -21,7 +21,7 @@ export function generateHybridEncryptionKeys() {
 export function generateHybridSigningKeys() {
   const edSecret = ed25519.utils.randomPrivateKey()
   const edPublic = ed25519.getPublicKey(edSecret)
-  const mlKeys = ml_dsa65.generateKeyPair()
+  const mlKeys = ml_dsa65.keygen()
   
   return {
     ed25519: { secretKey: edSecret, publicKey: edPublic },

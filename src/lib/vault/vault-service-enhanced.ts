@@ -405,7 +405,7 @@ export async function ensureVaultProfile(): Promise<VaultProfile> {
       .from('vault_user_profiles')
       .select('*')
       .eq('user_id', user.id)
-      .single()
+      .maybeSingle()
 
     if (fetchError && fetchError.code !== 'PGRST116') {
       handleSupabaseError(fetchError, 'fetching vault profile')
@@ -422,7 +422,7 @@ export async function ensureVaultProfile(): Promise<VaultProfile> {
         vault_locked: true,
       })
       .select()
-      .single()
+      .maybeSingle()
 
     if (insertError) {
       handleSupabaseError(insertError, 'creating vault profile')
@@ -1094,7 +1094,7 @@ export async function fetchUserKeys(): Promise<UserKeysData | null> {
     const { data, error } = await supabase
       .from('vault_user_keys')
       .select('wrapped_bundle, enc_public_key, sign_public_key, kdf_salt, kdf_algorithm, kdf_params')
-      .single()
+      .maybeSingle()
 
     if (error) {
       if (error.code === 'PGRST116') return null
