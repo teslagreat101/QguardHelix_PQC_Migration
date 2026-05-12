@@ -1,6 +1,6 @@
 <div align="center">
 
-<img width="1200" height="475" alt="QGuardHelix Banner" src="https://chatgpt.com/c/69fec0b3-a0d8-83ec-a795-25ead4dde2c8" />
+<img width="1200" height="475" alt="QGuardHelix Banner" src="https://github.com/teslagreat101/QguardHelix_PQC_Migration/blob/main/src/assets/images/QguardHelix_github.png" />
 
 # QGuardHelix — Quantum Cyber Defense Platform
 
