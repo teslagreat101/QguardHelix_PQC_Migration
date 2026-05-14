@@ -1,6 +1,6 @@
 import { ml_kem768 } from '@noble/post-quantum/ml-kem.js'
 import { ml_dsa65 } from '@noble/post-quantum/ml-dsa.js'
-import { sha256 } from '@noble/hashes/sha2.js'
+import { sha3_256 } from '@noble/hashes/sha3.js'
 import { hkdf } from '@noble/hashes/hkdf.js'
 import crypto from 'node:crypto'
 
@@ -39,7 +39,7 @@ export function encryptFile(data: Uint8Array, recipientPublicKey: Uint8Array) {
   const tag = cipher.getAuthTag()
   
   // 4. Calculate integrity hash of the ORIGINAL data
-  const integrityHash = toHex(sha256(data))
+  const integrityHash = toHex(sha3_256(data))
   
   // Concatenate encrypted body and auth tag
   const encryptedData = Buffer.concat([encryptedBody, tag])
@@ -83,7 +83,7 @@ export function decryptFile(
   
   // 4. Verify integrity if hash provided
   if (expectedIntegrityHash) {
-    const actualHash = toHex(sha256(decryptedData))
+    const actualHash = toHex(sha3_256(decryptedData))
     if (actualHash !== expectedIntegrityHash) {
       throw new Error('INTEGRITY_CHECK_FAILED')
     }
@@ -98,7 +98,7 @@ export function decryptFile(
 export function signFileMetadata(metadata: any, signingSecretKey: Uint8Array) {
   const message = JSON.stringify(metadata)
   const messageBytes = new TextEncoder().encode(message)
-  const signature = ml_dsa65.sign(signingSecretKey, messageBytes)
+  const signature = ml_dsa65.sign(messageBytes, signingSecretKey)
   
   return {
     signature: toHex(signature),
@@ -106,13 +106,18 @@ export function signFileMetadata(metadata: any, signingSecretKey: Uint8Array) {
   }
 }
 
+export function verifyFileSignature(signedMetadata: string, signatureHex: string, signingPublicKey: Uint8Array) {
+  const messageBytes = new TextEncoder().encode(signedMetadata)
+  return ml_dsa65.verify(fromHex(signatureHex), messageBytes, signingPublicKey)
+}
+
 /**
  * Wraps a secret key for storage at rest.
  * Uses AES-256-GCM with a key derived from the master key + user salt.
  */
 export function encryptSecretKey(secretKey: Uint8Array, masterKey: string, userId: string) {
-  const salt = fromHex(toHex(sha256(new TextEncoder().encode(userId))))
-  const key = hkdf(sha256, new TextEncoder().encode(masterKey), salt, new TextEncoder().encode('vault-wrapping-key'), 32)
+  const salt = fromHex(toHex(sha3_256(new TextEncoder().encode(userId))))
+  const key = hkdf(sha3_256, new TextEncoder().encode(masterKey), salt, new TextEncoder().encode('vault-wrapping-key'), 32)
   
   const nonce = crypto.randomBytes(12)
   const cipher = crypto.createCipheriv('aes-256-gcm', key, nonce)
@@ -130,10 +135,10 @@ export function encryptSecretKey(secretKey: Uint8Array, masterKey: string, userI
  */
 export function decryptSecretKey(encryptedKeyWithTag: Uint8Array, nonce: Uint8Array, masterKey: string, userId?: string) {
   const salt = userId 
-    ? fromHex(toHex(sha256(new TextEncoder().encode(userId))))
+    ? fromHex(toHex(sha3_256(new TextEncoder().encode(userId))))
     : new Uint8Array(32).fill(0) // Fallback for global keys
     
-  const key = hkdf(sha256, new TextEncoder().encode(masterKey), salt, new TextEncoder().encode('vault-wrapping-key'), 32)
+  const key = hkdf(sha3_256, new TextEncoder().encode(masterKey), salt, new TextEncoder().encode('vault-wrapping-key'), 32)
   
   const tagLength = 16
   const encryptedKey = encryptedKeyWithTag.slice(0, -tagLength)

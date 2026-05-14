@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
-import { fetchVaultFolders } from '@/lib/vault/vault-service'
+import { fetchVaultFolders } from '@/lib/vault/vault-service-enhanced'
 
 interface FolderNode {
   id: string

@@ -10,7 +10,7 @@ import {
   deleteVaultFolder,
   getFolderBreadcrumbs,
   type VaultFileEntry,
-} from '@/lib/vault/vault-service'
+} from '@/lib/vault/vault-service-enhanced'
 
 // ─── Types ─────────────────────────────────────────────────
 

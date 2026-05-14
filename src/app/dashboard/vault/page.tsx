@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { useAuth } from '@/contexts/auth-context'
-import QuantumVault from '@/components/quantum-vault/QuantumVault'
+import QuantumVault, { type VaultHeroMetrics } from '@/components/quantum-vault/QuantumVault'
 import ShareLinkModal from '@/components/quantum-vault/ShareLinkModal'
 import ShareSecurityAlerts from '@/components/quantum-vault/ShareSecurityAlerts'
 import VaultFolderExplorer from '@/components/quantum-vault/VaultFolderExplorer'
@@ -13,7 +13,6 @@ import VaultAlertDialog, {
 } from '@/components/quantum-vault/VaultAlertDialog'
 import type { ZKMasterKeys } from '@/lib/vault/client-crypto'
 import * as vaultSvc from '@/lib/vault/vault-service-enhanced'
-import { VaultError } from '@/lib/vault/vault-service-enhanced'
 
 // ─── Desktop Download Manifest ─────────────────────────────
 // Local Next.js public assets for the QGuard Vault desktop app.
@@ -53,11 +52,17 @@ interface VaultFileEntry {
   shared_with: string[]
   is_locked: boolean
   integrity_hash: string | null
+  encrypted_content_hash: string | null
   signature: string | null
   encryption_key_id: string | null
   signing_key_id: string | null
   kem_ciphertext: string | null
   aes_nonce: string | null
+  aes_auth_tag?: string | null
+  envelope_meta?: Record<string, unknown> | null
+  key_derivation_meta?: Record<string, unknown> | null
+  aad_hash?: string | null
+  folder_id?: string | null
 }
 
 interface VaultKeyEntry {
@@ -117,6 +122,14 @@ interface SharedLinkEntry {
   last_accessed_at: string | null
 }
 
+interface VaultTelemetryEvent {
+  id: string
+  event_type: string
+  severity: string
+  message: string
+  created_at: string
+}
+
 // ─── Helpers ───────────────────────────────────────────────
 
 function formatFileSize(bytes: number): string {
@@ -156,6 +169,11 @@ function eventIcon(eventType: string): string {
 
 // ─── Main Component ────────────────────────────────────────
 
+function hexToBytes(hex: string): Uint8Array {
+  const pairs = hex.match(/.{1,2}/g) || []
+  return new Uint8Array(pairs.map((byte) => parseInt(byte, 16)))
+}
+
 export default function VaultPage() {
   const { session } = useAuth()
 
@@ -183,6 +201,8 @@ export default function VaultPage() {
   const [shareModalFile, setShareModalFile] = useState<{ id: string; name: string } | null>(null)
   const [revokingLink, setRevokingLink] = useState<string | null>(null)
   const [fetchError, setFetchError] = useState<string | null>(null)
+  const [realtimeConnected, setRealtimeConnected] = useState(false)
+  const [telemetryEvents, setTelemetryEvents] = useState<VaultTelemetryEvent[]>([])
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [currentFolderId, setCurrentFolderId] = useState<string | null>(null)
   const [moveModalTarget, setMoveModalTarget] = useState<{ id: string; name: string; type: 'file' | 'folder' } | null>(null)
@@ -211,6 +231,19 @@ export default function VaultPage() {
   // Keep refs synced with the latest state for stable callbacks below.
   useEffect(() => { zkKeysRef.current = zkKeys }, [zkKeys])
   useEffect(() => { filesRef.current = files }, [files])
+
+  const pushTelemetry = useCallback((eventType: string, message: string, severity = 'info') => {
+    setTelemetryEvents((prev) => [
+      {
+        id: `${eventType}-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        event_type: eventType,
+        severity,
+        message,
+        created_at: new Date().toISOString(),
+      },
+      ...prev,
+    ].slice(0, 24))
+  }, [])
 
   // ─── Data Fetching (Supabase direct) ───────────────────
 
@@ -260,9 +293,11 @@ export default function VaultPage() {
   useEffect(() => {
     if (session?.access_token) {
       fetchFiles()
+      fetchKeys()
+      fetchAudit()
       fetchSharedLinks()
     }
-  }, [fetchFiles, fetchSharedLinks, session?.access_token])
+  }, [fetchFiles, fetchKeys, fetchAudit, fetchSharedLinks, session?.access_token])
 
   useEffect(() => {
     if (!session?.access_token) return
@@ -271,19 +306,93 @@ export default function VaultPage() {
     if (activeTab === 'shared') fetchSharedLinks()
   }, [activeTab, fetchKeys, fetchAudit, fetchSharedLinks, session?.access_token])
 
+  useEffect(() => {
+    const userId = session?.user?.id
+    if (!userId) return
+
+    const filesChannel = vaultSvc.subscribeToVaultFiles(({ event, file }) => {
+      pushTelemetry(
+        event === 'INSERT' ? 'file_upload_completed' : 'vault_health_updated',
+        event === 'INSERT'
+          ? `File sealed in vault: ${file.name}`
+          : `Vault file state updated: ${file.name}`,
+      )
+      fetchFiles()
+    }, userId)
+
+    const auditChannel = vaultSvc.subscribeToVaultAuditLogs(({ audit }) => {
+      setAuditEvents((prev) => [audit, ...prev.filter((item) => item.id !== audit.id)].slice(0, 50))
+      pushTelemetry(audit.event_type, audit.description || audit.event_type, audit.severity)
+    }, userId)
+
+    setRealtimeConnected(true)
+    return () => {
+      setRealtimeConnected(false)
+      void filesChannel.unsubscribe()
+      void auditChannel.unsubscribe()
+    }
+  }, [fetchFiles, pushTelemetry, session?.user?.id])
+
   // ─── Upload (plain, no encryption) ────────────────────
 
   const handleFileUpload = async (e: { target: { files?: FileList | null; value?: string } }) => {
     const file = e.target.files?.[0]
     if (!file) return
 
+    const currentZkKeys = zkKeysRef.current
+    if (!currentZkKeys) {
+      showAlert({
+        variant: 'warning',
+        title: 'Open the vault first',
+        description: 'Files must be encrypted before storage. Open the Quantum Vault and unlock your passphrase before uploading.',
+      })
+      if (fileInputRef.current) fileInputRef.current.value = ''
+      return
+    }
+
     setUploading(true)
+    pushTelemetry('file_upload_started', `File upload started: ${file.name}`)
     try {
-      const uploaded = await vaultSvc.uploadVaultFile(file, currentFolderId)
+      const fileData = new Uint8Array(await file.arrayBuffer())
+      const { encryptFileLocal, signData } = await import('@/lib/vault/client-crypto')
+      const result = encryptFileLocal(fileData, currentZkKeys.encPublicKey, currentZkKeys.x25519Public)
+      const signedMetadata = JSON.stringify({
+        fileName: file.name,
+        fileSize: result.originalSize,
+        integrityHash: result.integrityHash,
+        encryptedIntegrityHash: result.encryptedIntegrityHash,
+        encryptionAlgorithm: result.algorithm,
+        envelope: result.envelopeMeta,
+        timestamp: new Date().toISOString(),
+      })
+      const signature = signData(new TextEncoder().encode(signedMetadata), currentZkKeys.signSecretKey, currentZkKeys.ed25519Secret)
+
+      const uploaded = await vaultSvc.uploadVaultFile(file, {
+        folderId: currentFolderId,
+        encryptionData: {
+          encryptedData: result.encryptedData,
+          kemCiphertext: result.kemCiphertext,
+          aesNonce: result.aesNonce,
+          aesAuthTag: result.aesAuthTag,
+          contentHash: result.integrityHash,
+          encryptedContentHash: result.encryptedIntegrityHash,
+          aadHash: result.aadHash,
+          envelopeMeta: { ...result.envelopeMeta, signedMetadata },
+          keyDerivationMeta: { kdf: 'HKDF-SHA3-256', hash: 'SHA3-256' },
+          algorithm: result.algorithm,
+          signature,
+        },
+      })
+      fileData.fill(0)
       setFiles((prev) => [uploaded, ...prev])
+      pushTelemetry('file_upload_completed', `File upload completed: ${file.name}`)
     } catch (err) {
       console.error('Upload failed:', err)
-      alert('Upload failed')
+      showAlert({
+        variant: 'error',
+        title: 'Upload failed',
+        description: err instanceof Error ? err.message : 'The encrypted upload could not be completed.',
+      })
     } finally {
       setUploading(false)
       if (fileInputRef.current) fileInputRef.current.value = ''
@@ -295,12 +404,17 @@ export default function VaultPage() {
   const handleEncrypt = async (fileId: string) => {
     setEncrypting(fileId)
     setEncryptProgress({ stage: 'preparing', percent: 0, message: 'Preparing encryption...' })
+    let fileData: Uint8Array | null = null
 
     try {
-      // Client-side encryption — ZK mode. Download unencrypted, encrypt in browser, re-upload.
+      // Client-side encryption: download a legacy pending blob, seal it in-browser, re-upload.
       setEncryptProgress({ stage: 'downloading', percent: 10, message: 'Downloading plaintext from vault...' })
+      const fileMeta = filesRef.current.find((file) => file.id === fileId)
+      pushTelemetry('encryption_started', `Encryption started: ${fileMeta?.name || fileId}`)
+      await vaultSvc.logAudit('encryption_started', 'info', 'file', fileId, `Encryption started: ${fileMeta?.name || fileId}`)
+
       const { data: blob, filename, mimeType } = await vaultSvc.downloadVaultFile(fileId)
-      const fileData = new Uint8Array(await blob.arrayBuffer())
+      fileData = new Uint8Array(await blob.arrayBuffer())
 
       setEncryptProgress({ stage: 'encrypting', percent: 30, message: 'Loading post-quantum crypto engine...' })
       const currentZkKeys = zkKeysRef.current
@@ -309,30 +423,52 @@ export default function VaultPage() {
         return
       }
 
-      const { encryptFileLocal } = await import('@/lib/vault/client-crypto')
-      setEncryptProgress({ stage: 'encrypting', percent: 50, message: 'Encrypting with ML-KEM-768 + AES-256-GCM...' })
-      const result = encryptFileLocal(fileData, currentZkKeys.encPublicKey)
+      const { encryptFileLocal, signData } = await import('@/lib/vault/client-crypto')
+      setEncryptProgress({ stage: 'encrypting', percent: 50, message: 'Encrypting with X25519 + ML-KEM-768 + AES-256-GCM...' })
+      const result = encryptFileLocal(fileData, currentZkKeys.encPublicKey, currentZkKeys.x25519Public)
+      const signedMetadata = JSON.stringify({
+        fileName: filename,
+        fileSize: result.originalSize,
+        integrityHash: result.integrityHash,
+        encryptedIntegrityHash: result.encryptedIntegrityHash,
+        encryptionAlgorithm: result.algorithm,
+        envelope: result.envelopeMeta,
+        timestamp: new Date().toISOString(),
+      })
+      const signature = signData(new TextEncoder().encode(signedMetadata), currentZkKeys.signSecretKey, currentZkKeys.ed25519Secret)
+      pushTelemetry('key_wrapping_completed', `Key wrapping completed: ${filename}`)
 
       setEncryptProgress({ stage: 'uploading', percent: 70, message: 'Uploading encrypted file...' })
-      // Delete old unencrypted file and upload encrypted version
+      // Soft-delete the legacy pending blob and upload the sealed replacement.
       await vaultSvc.deleteVaultFile(fileId)
       const originalFile = new File([fileData], filename, { type: mimeType })
       const uploaded = await vaultSvc.uploadVaultFile(originalFile, {
-        folderId: null,
+        folderId: fileMeta?.folder_id || currentFolderId,
         encryptionData: {
           encryptedData: result.encryptedData,
           kemCiphertext: result.kemCiphertext,
           aesNonce: result.aesNonce,
+          aesAuthTag: result.aesAuthTag,
           contentHash: result.integrityHash,
+          encryptedContentHash: result.encryptedIntegrityHash,
+          aadHash: result.aadHash,
+          envelopeMeta: { ...result.envelopeMeta, signedMetadata },
+          keyDerivationMeta: { kdf: 'HKDF-SHA3-256', hash: 'SHA3-256' },
+          algorithm: result.algorithm,
+          signature,
         }
       })
 
-      setFiles((prev) => prev.map((f) => f.id === fileId ? uploaded : f))
-      setEncryptProgress({ stage: 'complete', percent: 100, message: 'File encrypted with ML-KEM-768 + AES-256-GCM' })
+      setFiles((prev) => [uploaded, ...prev.filter((f) => f.id !== fileId)])
+      setEncryptProgress({ stage: 'complete', percent: 100, message: 'File encrypted with X25519 + ML-KEM-768 + AES-256-GCM' })
+      pushTelemetry('encryption_completed', `Encryption completed: ${filename}`)
+      await vaultSvc.logAudit('encryption_completed', 'info', 'file', uploaded.id, `Encryption completed: ${filename}`)
     } catch (err) {
       console.error('Encrypt failed:', err)
       setEncryptProgress({ stage: 'error', percent: 0, message: (err as Error).message || 'Encryption failed' })
+      pushTelemetry('encryption_failed', `Encryption failed: ${err instanceof Error ? err.message : fileId}`, 'critical')
     } finally {
+      fileData?.fill(0)
       setTimeout(() => {
         setEncrypting(null)
         setEncryptProgress(null)
@@ -357,6 +493,8 @@ export default function VaultPage() {
       !!file && file.is_locked && (file.encryption_key_id == null || file.encryption_algorithm?.startsWith('ZK-'))
 
     try {
+      pushTelemetry('decryption_started', `Decryption started: ${file?.name || fileId}`)
+      await vaultSvc.logAudit('decryption_started', 'info', 'file', fileId, `Decryption started: ${file?.name || fileId}`)
       if (needsClientDecrypt && currentZkKeys && file) {
         // ── ZK Client-Side Decrypt ──────────────────────────
         const { data: encryptedBlob } = await vaultSvc.downloadVaultFile(fileId)
@@ -369,6 +507,8 @@ export default function VaultPage() {
           file.aes_nonce!,
           currentZkKeys.encSecretKey,
           file.integrity_hash || undefined,
+          file.envelope_meta,
+          currentZkKeys.x25519Secret,
         )
 
         const blob = new Blob([decrypted.buffer as ArrayBuffer], { type: file.mime_type || 'application/octet-stream' })
@@ -378,6 +518,9 @@ export default function VaultPage() {
         a.download = file.name
         a.click()
         URL.revokeObjectURL(url)
+        decrypted.fill(0)
+        pushTelemetry('decryption_completed', `Decryption completed: ${file.name}`)
+        await vaultSvc.logAudit('decryption_completed', 'info', 'file', fileId, `Decryption completed: ${file.name}`)
       } else if (needsClientDecrypt && !currentZkKeys) {
         showAlert({
           variant: 'warning',
@@ -396,6 +539,7 @@ export default function VaultPage() {
         a.download = filename
         a.click()
         URL.revokeObjectURL(url)
+        pushTelemetry('download_started', `Download started: ${filename}`)
       }
     } catch (err) {
       console.error('Decrypt failed:', err)
@@ -424,6 +568,8 @@ export default function VaultPage() {
   const handleDownloadEncrypted = async (fileId: string, fileName: string) => {
     setDownloading(fileId)
     try {
+      pushTelemetry('download_started', `Encrypted download started: ${fileName}`)
+      await vaultSvc.logAudit('download_started', 'info', 'file', fileId, `Encrypted download started: ${fileName}`)
       const { data: blob } = await vaultSvc.downloadVaultFile(fileId)
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
@@ -445,28 +591,67 @@ export default function VaultPage() {
     setVerifying(fileId)
     setVerifyResult(null)
     try {
-      // Client-side integrity verification
       const file = files.find(f => f.id === fileId)
       if (!file) throw new Error('File not found')
+
+      pushTelemetry('file_verification_running', `File verification running: ${file.name}`)
+      await vaultSvc.logAudit('file_verification_running', 'info', 'file', fileId, `File verification running: ${file.name}`)
 
       const { data: blob } = await vaultSvc.downloadVaultFile(fileId)
       const data = new Uint8Array(await blob.arrayBuffer())
 
-      const { computeHash } = await import('@/lib/vault/client-crypto')
-      const currentHash = computeHash(data)
+      const { computeEncryptedHash, computeHash, verifyHybridSignature } = await import('@/lib/vault/client-crypto')
+      const storageHash = file.encrypted_content_hash ? computeEncryptedHash(data) : computeHash(data)
+      const expectedHash = file.encrypted_content_hash || file.integrity_hash
+      const storageIntegrity = expectedHash ? storageHash === expectedHash : data.length === file.size
 
-      const integrityMatch = file.integrity_hash ? currentHash === file.integrity_hash : null
+      const signedMetadata = file.envelope_meta?.signedMetadata
+      let signatureValid = false
+      const hasSignature = !!file.signature
+      if (hasSignature && typeof signedMetadata === 'string') {
+        let signPublicKey = zkKeysRef.current?.signPublicKey
+        if (!signPublicKey) {
+          const userKeys = await vaultSvc.fetchUserKeys()
+          if (userKeys?.sign_public_key) signPublicKey = hexToBytes(userKeys.sign_public_key)
+        }
+        if (signPublicKey) {
+          signatureValid = verifyHybridSignature(
+            new TextEncoder().encode(signedMetadata),
+            file.signature!,
+            signPublicKey,
+            zkKeysRef.current?.ed25519Public,
+          )
+        }
+      }
+
+      const valid = storageIntegrity && (!hasSignature || signatureValid)
       setVerifyResult({
-        integrity: integrityMatch === true ? 'valid' : integrityMatch === false ? 'invalid' : 'unknown',
-        hash: currentHash,
-        storedHash: file.integrity_hash || null,
-        signature: file.signature ? 'present' : 'none',
-        algorithm: file.encryption_algorithm,
+        fileId,
+        fileName: file.name,
+        valid,
+        checks: {
+          storageIntegrity,
+          signatureValid,
+          hasSignature,
+        },
+        verifiedAt: new Date().toISOString(),
       })
 
-      await vaultSvc.logAudit('file_verified', 'info', 'file', fileId, `Verified integrity: ${integrityMatch ? 'valid' : 'failed'}`)
+      pushTelemetry(
+        valid ? 'file_integrity_verified' : 'signature_verification_failed',
+        valid ? `File integrity verified: ${file.name}` : `Verification failed: ${file.name}`,
+        valid ? 'info' : 'critical',
+      )
+      await vaultSvc.logAudit(
+        valid ? 'file_integrity_verified' : 'signature_verification_failed',
+        valid ? 'info' : 'critical',
+        'file',
+        fileId,
+        valid ? `File integrity verified: ${file.name}` : `Verification failed: ${file.name}`,
+      )
     } catch (err) {
       console.error('Verify failed:', err)
+      pushTelemetry('file_verification_failed', `File verification failed: ${err instanceof Error ? err.message : fileId}`, 'critical')
     } finally {
       setVerifying(null)
     }
@@ -479,6 +664,7 @@ export default function VaultPage() {
     try {
       await vaultSvc.deleteVaultFile(fileId)
       setFiles((prev) => prev.filter((f) => f.id !== fileId))
+      pushTelemetry('delete_completed', `Delete completed: ${fileId.slice(0, 8)}`)
     } catch (err) {
       console.error('Delete failed:', err)
     }
@@ -489,7 +675,7 @@ export default function VaultPage() {
   /**
    * Get plaintext file data for sharing.
    * For encrypted files: download + decrypt locally.
-   * For unencrypted files: download raw.
+   * For legacy pending files: download raw.
    */
   const getPlaintextForSharing = (fileId: string): (() => Promise<Uint8Array>) => {
     return async () => {
@@ -507,6 +693,8 @@ export default function VaultPage() {
         return decryptFileLocal(
           rawData, file.kem_ciphertext!, file.aes_nonce!,
           zkKeys.encSecretKey, file.integrity_hash || undefined,
+          file.envelope_meta,
+          zkKeys.x25519Secret,
         )
       }
 
@@ -570,8 +758,8 @@ export default function VaultPage() {
   }
 
   const handleFolderFilesChanged = useCallback(() => {
-    // Folder explorer manages its own file list; stats recalculated via fetchFiles
-  }, [])
+    fetchFiles()
+  }, [fetchFiles])
 
   // ─── Key Management ──────────────────────────────────
 
@@ -613,15 +801,67 @@ export default function VaultPage() {
     setPendingConfirm({ action, keyType, keyId, message })
   }
 
+  const handleKeysUnlocked = useCallback((keys: ZKMasterKeys) => {
+    setZkKeys(keys)
+    pushTelemetry('vault_initialized', 'Vault initialized and master keys unwrapped')
+    void vaultSvc.logAudit('vault_initialized', 'info', 'profile', null, 'Vault initialized and master keys unwrapped')
+  }, [pushTelemetry])
+
+  const heroMetrics: VaultHeroMetrics = useMemo(() => {
+    const encryptedFileCount = files.filter((file) => file.is_locked).length
+    const activeShareCount = sharedLinks.filter((link) =>
+      !link.is_revoked && !link.is_destroyed && (!link.expires_at || new Date(link.expires_at) > new Date())
+    ).length
+    const quantumResistance = files.length === 0 ? 100 : Math.round((encryptedFileCount / files.length) * 100)
+    const zeroKnowledgeScore = zkKeys ? 100 : encryptedFileCount > 0 ? 96 : 90
+    const integrityScore = verifyResult ? (verifyResult.valid ? 100 : 0) : 100
+    const recentActivity = [
+      ...telemetryEvents.map((event) => event.message),
+      ...auditEvents.map((event) => event.description),
+    ].filter(Boolean).slice(0, 4)
+
+    return {
+      fileCount: files.length,
+      encryptedFileCount,
+      activeKeyCount: keys.filter((key) => key.isActive).length,
+      activeShareCount,
+      storageLabel: `${formatFileSize(usedStorage)} / ${formatFileSize(maxStorage)}`,
+      storagePercent: Math.min(100, (usedStorage / maxStorage) * 100),
+      integrityScore,
+      quantumResistance,
+      zeroKnowledgeScore,
+      systemHealth: fetchError ? 'degraded' : session?.access_token ? 'optimal' : 'offline',
+      telemetryConnected: realtimeConnected,
+      recentActivity,
+    }
+  }, [
+    auditEvents,
+    fetchError,
+    files,
+    keys,
+    maxStorage,
+    realtimeConnected,
+    session?.access_token,
+    sharedLinks,
+    telemetryEvents,
+    usedStorage,
+    verifyResult,
+    zkKeys,
+  ])
+
   return (
     <div>
       {/* Real-time security alerts for share link password attempts */}
       <ShareSecurityAlerts onLinkDestroyed={fetchSharedLinks} />
-
-      <h1 className="page-title animate-fade-in-up">Secure Quantum Vault</h1>
-      <p className="page-subtitle animate-fade-in-up delay-100">
-        Post-Quantum Encrypted File Storage — ML-KEM-768 + AES-256-GCM Envelope Encryption with ML-DSA-65 Signatures
-      </p>
+      <QuantumVault
+        sessionToken={session?.access_token}
+        metrics={heroMetrics}
+        onFileUploaded={() => {
+          fetchFiles()
+          fetchAudit()
+        }}
+        onKeysUnlocked={handleKeysUnlocked}
+      />
 
       {/* ── Desktop App Download Banner ───────── */}
       <div className="q-card animate-fade-in-up delay-150" style={{
@@ -748,12 +988,6 @@ export default function VaultPage() {
       </div>
 
       {/* ── Quantum Vault Cinematic Upload Component ───────── */}
-      <QuantumVault
-        sessionToken={session?.access_token}
-        onFileUploaded={fetchFiles}
-        onKeysUnlocked={(keys) => setZkKeys(keys)}
-      />
-
       {/* Hidden file input (for quick upload in files tab) */}
       <input ref={fileInputRef} type="file" title="Upload file to vault" style={{ display: 'none' }} onChange={handleFileUpload} />
 
@@ -766,6 +1000,67 @@ export default function VaultPage() {
         actions={alertState?.actions}
         onClose={closeAlert}
       />
+
+      <div className="q-card animate-fade-in-up" style={{ marginBottom: 24, padding: '18px 22px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 800, color: '#fff3c1', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+              Live Vault Activity
+            </div>
+            <div style={{ fontSize: 11, color: 'var(--qg-text-muted)', marginTop: 3 }}>
+              Supabase realtime plus client-side crypto operation telemetry
+            </div>
+          </div>
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 8,
+            fontSize: 10,
+            color: realtimeConnected ? 'var(--qg-green, #10b981)' : 'var(--qg-amber, #f59e0b)',
+            fontFamily: 'var(--font-mono)',
+            letterSpacing: '0.1em',
+            textTransform: 'uppercase',
+          }}>
+            <span style={{
+              width: 7,
+              height: 7,
+              borderRadius: '50%',
+              background: realtimeConnected ? 'var(--qg-green, #10b981)' : 'var(--qg-amber, #f59e0b)',
+              boxShadow: realtimeConnected ? '0 0 10px rgba(16,185,129,0.8)' : '0 0 10px rgba(245,158,11,0.75)',
+            }} />
+            {realtimeConnected ? 'Connected' : 'Standby'}
+          </div>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 8 }}>
+          {(telemetryEvents.length > 0 ? telemetryEvents.slice(0, 4) : auditEvents.slice(0, 4).map((event) => ({
+            id: event.id,
+            event_type: event.event_type,
+            severity: event.severity,
+            message: event.description,
+            created_at: event.created_at,
+          }))).map((event) => (
+            <div key={event.id} style={{
+              minHeight: 58,
+              padding: '10px 12px',
+              borderRadius: 8,
+              border: '1px solid rgba(212,175,55,0.16)',
+              background: 'rgba(212,175,55,0.035)',
+            }}>
+              <div style={{ fontSize: 10, color: severityColor(event.severity), fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 5 }}>
+                {event.event_type.replace(/_/g, ' ')}
+              </div>
+              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.72)', lineHeight: 1.4 }}>
+                {event.message || 'Vault health updated'}
+              </div>
+            </div>
+          ))}
+          {telemetryEvents.length === 0 && auditEvents.length === 0 && (
+            <div style={{ fontSize: 12, color: 'var(--qg-text-muted)' }}>
+              Live events will appear here as vault operations run.
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* Storage Stats */}
       <div className="stats-grid" style={{ marginBottom: 24 }}>

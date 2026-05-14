@@ -1,9 +1,10 @@
 'use client'
 
 import { useState } from 'react'
+import type { FormEvent } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { ZKMasterKeys, WrappedMasterKeys } from '@/lib/vault/client-crypto'
-import { fetchUserKeys, storeUserKeys } from '@/lib/vault/vault-service'
+import { fetchUserKeys, storeUserKeys } from '@/lib/vault/vault-service-enhanced'
 
 interface VaultPassphraseProps {
   mode: 'create' | 'unlock'
@@ -26,7 +27,7 @@ export default function VaultPassphrase({ mode, sessionToken, onKeysReady, onCan
     ? passphrase.length >= MIN_PASSPHRASE_LENGTH && passphrase === confirmPassphrase
     : passphrase.length > 0
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     if (!isValid || loading) return
 
@@ -46,13 +47,17 @@ export default function VaultPassphrase({ mode, sessionToken, onKeysReady, onCan
         setStage('Generating ML-KEM-768 + ML-DSA-65 keypairs...')
         const masterKeys = await generateMasterKeys()
 
-        setStage('Deriving key from passphrase (PBKDF2 · 600K rounds)...')
+        setStage('Deriving key from passphrase (PBKDF2-SHA3 + HKDF-SHA3-256)...')
         const wrapped = await wrapMasterKeys(masterKeys, passphrase)
 
         setStage('Storing wrapped keys in vault...')
         // Helper to convert Uint8Array to hex
         const toHex = (bytes: Uint8Array) => Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('')
-        await storeUserKeys(wrapped, toHex(masterKeys.encPublicKey), toHex(masterKeys.signPublicKey))
+        await storeUserKeys(wrapped, toHex(masterKeys.encPublicKey), toHex(masterKeys.signPublicKey), {
+          salt: 'stored-in-wrapped-bundle',
+          algorithm: 'PBKDF2-SHA3-256+HKDF-SHA3-256',
+          params: { iterations: 600000, finalKdf: 'HKDF-SHA3-256' },
+        })
 
         onKeysReady(masterKeys)
       } else {
@@ -64,7 +69,7 @@ export default function VaultPassphrase({ mode, sessionToken, onKeysReady, onCan
           throw new Error('No keys found — please create a vault passphrase first')
         }
 
-        setStage('Deriving key from passphrase (PBKDF2 · 600K rounds)...')
+        setStage('Deriving key from passphrase (PBKDF2-SHA3 + HKDF-SHA3-256)...')
         const wrappedData: WrappedMasterKeys = userKeys
 
         setStage('Unwrapping secret keys...')
@@ -312,7 +317,7 @@ export default function VaultPassphrase({ mode, sessionToken, onKeysReady, onCan
         </div>
         {isCreate ? (
           <>
-            Your passphrase derives a Key Encryption Key (KEK) via PBKDF2-SHA256 with 600,000 iterations.
+            Your passphrase derives a Key Encryption Key via PBKDF2-SHA3-256, then binds it with HKDF-SHA3-256.
             The KEK wraps your ML-KEM-768 + ML-DSA-65 master secret keys using AES-256-GCM.
             Only the wrapped (encrypted) keys are stored on the server. Your passphrase and raw keys never leave this browser.
           </>

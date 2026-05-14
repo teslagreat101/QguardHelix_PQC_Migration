@@ -15,7 +15,7 @@ import { sha3_256 } from '@noble/hashes/sha3.js'
 import { useAuth } from '@/contexts/auth-context'
 import PassphraseModal, { type PassphraseModalMode } from './PassphraseModal'
 import { useUnlockedIdentity } from './useUnlockedIdentity'
-import { fetchAllVaultFiles, downloadVaultFile, logAudit } from '@/lib/vault/vault-service'
+import { fetchAllVaultFiles, downloadVaultFile, logAudit } from '@/lib/vault/vault-service-enhanced'
 
 /**
  * Portable Hybrid Identity card.
@@ -206,7 +206,7 @@ export default function PortableIdentityCard() {
         mldsaSecret: sign.mldsa.secretKey,
       }
 
-      setStatus({ kind: 'busy', message: 'Wrapping with Argon2id + AES-256-GCM (~250 ms)...' })
+      setStatus({ kind: 'busy', message: 'Wrapping with PBKDF2-SHA3-256 + AES-256-GCM...' })
       await new Promise((r) => setTimeout(r, 10))
 
       const bundle = exportBundle({ material, passphrase, label })
@@ -259,7 +259,7 @@ export default function PortableIdentityCard() {
   }
 
   async function runImport(file: File, passphrase: string) {
-    setStatus({ kind: 'busy', message: 'Deriving key (Argon2id, ~250 ms)...' })
+    setStatus({ kind: 'busy', message: 'Deriving key (PBKDF2-SHA3-256)...' })
     await new Promise((r) => setTimeout(r, 10))
 
     try {
@@ -368,7 +368,7 @@ export default function PortableIdentityCard() {
             Portable Hybrid Identity (.qgkey)
           </div>
           <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', marginTop: 2 }}>
-            X25519 + ML-KEM-768 + Ed25519 + ML-DSA-65, wrapped with Argon2id → AES-256-GCM.
+            X25519 + ML-KEM-768 + Ed25519 + ML-DSA-65, wrapped with PBKDF2-SHA3-256 and AES-256-GCM.
             Exports are signed locally by your unlocked identity — never by the server.
           </div>
         </div>

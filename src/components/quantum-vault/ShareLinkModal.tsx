@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { createSharedLink } from '@/lib/vault/vault-service'
+import { createSharedLink } from '@/lib/vault/vault-service-enhanced'
 
 interface ShareLinkModalProps {
   fileId: string

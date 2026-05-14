@@ -1,4 +1,4 @@
-import { sha256 } from '@noble/hashes/sha2.js'
+import { sha3_256 } from '@noble/hashes/sha3.js'
 
 /**
  * Merkle Tree Implementation for Vault File Integrity.
@@ -24,7 +24,7 @@ export function buildMerkleTreeFromData(data: Uint8Array) {
     chunks.push(new Uint8Array(0))
   }
   
-  let layer = chunks.map(c => sha256(c))
+  let layer = chunks.map(c => sha3_256(c))
   const tree = [layer.map(h => toHex(h))]
   
   while (layer.length > 1) {
@@ -34,7 +34,7 @@ export function buildMerkleTreeFromData(data: Uint8Array) {
         const combined = new Uint8Array(layer[i].length + layer[i+1].length)
         combined.set(layer[i])
         combined.set(layer[i+1], layer[i].length)
-        nextLayer.push(sha256(combined))
+        nextLayer.push(sha3_256(combined))
       } else {
         nextLayer.push(layer[i]) // Odd leaf
       }

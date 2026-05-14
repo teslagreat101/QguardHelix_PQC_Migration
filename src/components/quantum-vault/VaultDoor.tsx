@@ -168,7 +168,7 @@ export default function VaultDoor({ vaultState, onOpenComplete }: VaultDoorProps
             width="100%"
             height="100%"
             viewBox="0 0 600 600"
-            style={{ maxWidth: 520, display: 'block', margin: '0 auto' }}
+            style={{ maxWidth: 430, display: 'block', margin: '0 auto' }}
           >
             <defs>
               {/* Glow filters */}
@@ -202,10 +202,10 @@ export default function VaultDoor({ vaultState, onOpenComplete }: VaultDoorProps
                 <stop offset="100%" stopColor="#030810" />
               </radialGradient>
               <radialGradient id="qvg-core" cx="50%" cy="40%" r="60%">
-                <stop offset="0%"   stopColor="#00e8ff" stopOpacity="1" />
-                <stop offset="25%"  stopColor="#00c4e8" stopOpacity="0.95" />
-                <stop offset="55%"  stopColor="#0096b8" stopOpacity="0.7" />
-                <stop offset="100%" stopColor="#002233" stopOpacity="0.1" />
+                <stop offset="0%"   stopColor="#fff7c9" stopOpacity="1" />
+                <stop offset="25%"  stopColor="#ffd76a" stopOpacity="0.96" />
+                <stop offset="55%"  stopColor="#d4af37" stopOpacity="0.74" />
+                <stop offset="100%" stopColor="#3a2500" stopOpacity="0.1" />
               </radialGradient>
               <radialGradient id="qvg-coreglow" cx="50%" cy="50%" r="50%">
                 <stop offset="0%"   stopColor="#d4af37" stopOpacity={isOpening ? '0.5' : '0.2'} />
@@ -291,7 +291,7 @@ export default function VaultDoor({ vaultState, onOpenComplete }: VaultDoorProps
             <g clipPath="url(#qvc-circuit)">
               {/* Base dim layer */}
               {circuits.paths.map((p, i) => (
-                <path key={`b${i}`} d={p.d} fill="none" stroke="#002030" strokeWidth="1.4" />
+                <path key={`b${i}`} d={p.d} fill="none" stroke="#241600" strokeWidth="1.4" />
               ))}
               {/* Glowing trace layer */}
               {circuits.paths.map((p, i) => (
@@ -304,7 +304,7 @@ export default function VaultDoor({ vaultState, onOpenComplete }: VaultDoorProps
               ))}
               {/* Animated light-flow */}
               {circuits.paths.map((p, i) => (
-                <path key={`f${i}`} d={p.d} fill="none" stroke="#7fffff"
+                <path key={`f${i}`} d={p.d} fill="none" stroke="#fff3c1"
                   strokeWidth="1.8" strokeDasharray="18 320"
                   filter="url(#qvg-strong)"
                   style={{
@@ -385,7 +385,7 @@ export default function VaultDoor({ vaultState, onOpenComplete }: VaultDoorProps
             <circle cx={CX} cy={CY} r="52" fill="none" stroke="#d4af37" strokeWidth="1"   opacity="0.9" filter="url(#qvg-soft)" />
             <circle cx={CX} cy={CY} r="46" fill="none" stroke="#d4af37" strokeWidth="0.7" opacity="0.6" />
             <circle cx={CX} cy={CY} r="40" fill="none" stroke="#d4af37" strokeWidth="0.5" opacity="0.4" />
-            <circle cx={CX} cy={CY} r="33" fill="#001620" />
+            <circle cx={CX} cy={CY} r="33" fill="#170f00" />
             <circle cx={CX} cy={CY} r="28" fill="#d4af37" opacity="0.12" filter="url(#qvg-strong)" />
             <circle cx={CX} cy={CY} r="20" fill="#d4af37" opacity="0.22" filter="url(#qvg-strong)" />
             {/* Shield icon */}
@@ -398,8 +398,8 @@ export default function VaultDoor({ vaultState, onOpenComplete }: VaultDoorProps
                 d="M11 6.5L16 8.5L16 12.5C16 14.8 13.8 16.5 11 17C8.2 16.5 6 14.8 6 12.5L6 8.5Z"
                 fill="#d4af37" opacity="0.4"
               />
-              {/* Check mark in shield */}
-              <path d="M8 12l2 2 4-4" fill="none" stroke="#d4af37" strokeWidth="1.2" strokeLinecap="round" />
+              <circle cx="11" cy="11" r="2.4" fill="#d4af37" />
+              <path d="M11 13.2v3.4" fill="none" stroke="#d4af37" strokeWidth="1.3" strokeLinecap="round" />
             </g>
 
             {/* ── 9. Status text ────────────────────────────────── */}

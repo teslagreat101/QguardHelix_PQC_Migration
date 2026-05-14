@@ -145,6 +145,7 @@ export async function POST(request: NextRequest) {
             originalFilename: linkData.original_filename,
             originalSize: linkData.original_size,
             mimeType: linkData.mime_type,
+            passwordSalt: linkData.password_salt,
             remainingAttempts: remaining,
           }
         }))

@@ -143,6 +143,7 @@ export default function SharedFilePage() {
           originalSize: json.data.originalSize,
           mimeType: json.data.mimeType,
           isPasswordProtected: true,
+          passwordSalt: json.data.passwordSalt,
         })
         setState('password_required')
         return
@@ -170,7 +171,10 @@ export default function SharedFilePage() {
     setErrorMsg('')
     try {
       const { hashPassword } = await import('@/lib/vault/sharing-crypto')
-      const passwordHash = hashPassword(password)
+      if (!fileInfo?.passwordSalt) {
+        throw new Error('Password salt missing for this protected share.')
+      }
+      const passwordHash = await hashPassword(password, fileInfo.passwordSalt)
       await fetchSharedFile(passwordHash)
     } finally {
       setIsSubmitting(false)

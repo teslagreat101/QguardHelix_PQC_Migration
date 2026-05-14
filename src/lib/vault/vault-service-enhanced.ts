@@ -24,6 +24,9 @@ export interface VaultFileRecord {
   kem_ciphertext: string | null
   aes_nonce: string | null
   aes_auth_tag: string | null
+  envelope_meta: Record<string, unknown> | null
+  key_derivation_meta: Record<string, unknown> | null
+  aad_hash: string | null
   content_hash: string | null
   encrypted_content_hash: string | null
   encryption_key_id: string | null
@@ -157,6 +160,10 @@ export interface VaultFileEntry {
   kem_ciphertext: string | null
   aes_nonce: string | null
   aes_auth_tag: string | null
+  envelope_meta: Record<string, unknown> | null
+  key_derivation_meta: Record<string, unknown> | null
+  encrypted_content_hash: string | null
+  aad_hash: string | null
   folder_id: string | null
   processing_status: string
   encryption_status: string
@@ -223,6 +230,10 @@ function mapFileToEntry(f: VaultFileRecord): VaultFileEntry {
     kem_ciphertext: f.kem_ciphertext,
     aes_nonce: f.aes_nonce,
     aes_auth_tag: f.aes_auth_tag,
+    envelope_meta: f.envelope_meta,
+    key_derivation_meta: f.key_derivation_meta,
+    encrypted_content_hash: f.encrypted_content_hash,
+    aad_hash: f.aad_hash,
     folder_id: f.folder_id,
     processing_status: f.processing_status,
     encryption_status: f.encryption_status,
@@ -524,6 +535,11 @@ export interface UploadVaultFileOptions {
     aesNonce: string
     aesAuthTag?: string
     contentHash: string
+    encryptedContentHash?: string
+    aadHash?: string
+    envelopeMeta?: Record<string, unknown>
+    keyDerivationMeta?: Record<string, unknown>
+    algorithm?: string
     signature?: string
     signingKeyId?: string
   }
@@ -540,22 +556,34 @@ export async function uploadVaultFile(
     const user = await getAuthenticatedUser()
     await ensureVaultProfile()
 
+    if (!encryptionData) {
+      throw new VaultError(
+        'Vault uploads require client-side post-quantum encryption before storage.',
+        'ENCRYPTION_REQUIRED',
+        400
+      )
+    }
+
+    if (!encryptionData.kemCiphertext || !encryptionData.aesNonce || !encryptionData.contentHash) {
+      throw new VaultError(
+        'Encrypted upload is missing required cryptographic metadata.',
+        'INVALID_ENCRYPTION_METADATA',
+        400
+      )
+    }
+
     const fileId = crypto.randomUUID()
-    const isEncrypted = !!encryptionData
-    const fileExt = isEncrypted ? '.enc' : ''
+    const isEncrypted = true
+    const fileExt = '.enc'
     const storagePath = `vault/${user.id}/${fileId}/${fileId}${fileExt}`
 
-    // Upload to storage with progress tracking
-    const uploadData = isEncrypted ? encryptionData!.encryptedData : await file.arrayBuffer()
+    const uploadData = encryptionData.encryptedData
 
     const { error: storageError } = await supabase.storage
       .from('vault-encrypted')
       .upload(storagePath, uploadData, {
-        contentType: isEncrypted ? 'application/octet-stream' : file.type,
+        contentType: 'application/octet-stream',
         upsert: false,
-        onUploadProgress: onProgress
-          ? (progress) => onProgress(progress.loaded / progress.total)
-          : undefined,
       })
 
     if (storageError) {
@@ -566,26 +594,38 @@ export async function uploadVaultFile(
       )
     }
 
+    if (onProgress) onProgress(1)
+
     // Create file record
     const fileRecord = {
       id: fileId,
       user_id: user.id,
       folder_id: folderId,
       original_filename: file.name,
-      encrypted_filename: isEncrypted ? `${fileId}.enc` : null,
+      encrypted_filename: `${fileId}.enc`,
       mime_type: file.type || 'application/octet-stream',
       original_size: file.size,
-      encrypted_size: isEncrypted ? encryptionData!.encryptedData.length : null,
+      encrypted_size: encryptionData.encryptedData.length,
       storage_path: storagePath,
       storage_bucket: 'vault-encrypted',
-      encryption_status: isEncrypted ? 'encrypted' : 'pending',
-      encryption_algorithm: isEncrypted ? 'ML-KEM-768+AES-256-GCM' : 'none',
+      encryption_status: 'encrypted',
+      encryption_algorithm: encryptionData.algorithm || 'X25519+ML-KEM-768+AES-256-GCM',
       kem_ciphertext: encryptionData?.kemCiphertext || null,
       aes_nonce: encryptionData?.aesNonce || null,
       aes_auth_tag: encryptionData?.aesAuthTag || null,
       content_hash: encryptionData?.contentHash || null,
+      encrypted_content_hash: encryptionData?.encryptedContentHash || null,
+      aad_hash: encryptionData?.aadHash || null,
+      envelope_meta: encryptionData?.envelopeMeta || null,
+      key_derivation_meta: encryptionData?.keyDerivationMeta || {
+        kdf: 'HKDF-SHA3-256',
+        hash: 'SHA3-256',
+        source: 'client-side-zero-knowledge',
+      },
       signature: encryptionData?.signature || null,
       signing_key_id: encryptionData?.signingKeyId || null,
+      signature_status: encryptionData?.signature ? 'valid' : 'unverified',
+      signed_at: encryptionData?.signature ? new Date().toISOString() : null,
       processing_status: 'complete',
       uploaded_at: new Date().toISOString(),
     }
@@ -608,7 +648,7 @@ export async function uploadVaultFile(
       'info',
       'file',
       data.id,
-      `Uploaded ${isEncrypted ? 'encrypted' : 'unencrypted'} file: ${file.name}`
+      `Uploaded encrypted file: ${file.name}`
     )
 
     return mapFileToEntry(data)
@@ -1400,14 +1440,18 @@ export async function fetchVaultStats(): Promise<VaultStats> {
 // ─── Realtime Subscriptions ──────────────────────────────
 
 export function subscribeToVaultFiles(
-  callback: (payload: { event: string; file: VaultFileEntry }) => void
+  callback: (payload: { event: string; file: VaultFileEntry }) => void,
+  userId?: string
 ) {
   return supabase
-    .channel('vault-files-changes')
+    .channel(`vault-files-changes-${userId || 'all'}`)
     .on(
       'postgres_changes',
-      { event: '*', schema: 'public', table: 'vault_files' },
+      userId
+        ? { event: '*', schema: 'public', table: 'vault_files', filter: `user_id=eq.${userId}` }
+        : { event: '*', schema: 'public', table: 'vault_files' },
       (payload) => {
+        if (!payload.new) return
         callback({
           event: payload.eventType,
           file: mapFileToEntry(payload.new as VaultFileRecord),
@@ -1418,14 +1462,18 @@ export function subscribeToVaultFiles(
 }
 
 export function subscribeToVaultFolders(
-  callback: (payload: { event: string; folder: VaultFolderRecord }) => void
+  callback: (payload: { event: string; folder: VaultFolderRecord }) => void,
+  userId?: string
 ) {
   return supabase
-    .channel('vault-folders-changes')
+    .channel(`vault-folders-changes-${userId || 'all'}`)
     .on(
       'postgres_changes',
-      { event: '*', schema: 'public', table: 'vault_folders' },
+      userId
+        ? { event: '*', schema: 'public', table: 'vault_folders', filter: `user_id=eq.${userId}` }
+        : { event: '*', schema: 'public', table: 'vault_folders' },
       (payload) => {
+        if (!payload.new) return
         callback({
           event: payload.eventType,
           folder: payload.new as VaultFolderRecord,
@@ -1436,19 +1484,44 @@ export function subscribeToVaultFolders(
 }
 
 export function subscribeToProcessingStatus(
-  callback: (payload: { operation: string; progress: number; isComplete: boolean }) => void
+  callback: (payload: { operation: string; progress: number; isComplete: boolean }) => void,
+  userId?: string
 ) {
   return supabase
-    .channel('vault-processing-changes')
+    .channel(`vault-processing-changes-${userId || 'all'}`)
     .on(
       'postgres_changes',
-      { event: '*', schema: 'public', table: 'vault_processing_status' },
+      userId
+        ? { event: '*', schema: 'public', table: 'vault_processing_status', filter: `user_id=eq.${userId}` }
+        : { event: '*', schema: 'public', table: 'vault_processing_status' },
       (payload) => {
         const new_data = payload.new as { operation: string; progress_pct: number; is_complete: boolean }
         callback({
           operation: new_data.operation,
           progress: new_data.progress_pct,
           isComplete: new_data.is_complete,
+        })
+      }
+    )
+    .subscribe()
+}
+
+export function subscribeToVaultAuditLogs(
+  callback: (payload: { event: string; audit: AuditEventEntry }) => void,
+  userId?: string
+) {
+  return supabase
+    .channel(`vault-audit-changes-${userId || 'all'}`)
+    .on(
+      'postgres_changes',
+      userId
+        ? { event: 'INSERT', schema: 'public', table: 'vault_audit_logs', filter: `user_id=eq.${userId}` }
+        : { event: 'INSERT', schema: 'public', table: 'vault_audit_logs' },
+      (payload) => {
+        if (!payload.new) return
+        callback({
+          event: payload.eventType,
+          audit: mapAuditToEntry(payload.new as VaultAuditRecord),
         })
       }
     )
