@@ -30,6 +30,7 @@ interface ContainerSeed {
 // ── Container Seed Card ────────────────────────────────────────────────────────
 
 function ContainerCard({ seed, index, prefix, format }: {
+  key?: string | number
   seed: ContainerSeed
   index: number
   prefix: string

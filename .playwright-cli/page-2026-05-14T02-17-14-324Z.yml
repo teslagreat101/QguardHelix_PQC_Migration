@@ -1,0 +1,75 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - link "Qguard Helix logo Qguard Helix Quantum Defense" [ref=e5] [cursor=pointer]:
+      - /url: /
+      - img "Qguard Helix logo" [ref=e6]
+      - generic [ref=e7]:
+        - generic [ref=e8]: Qguard Helix
+        - generic [ref=e9]: Quantum Defense
+    - generic [ref=e10]:
+      - link "Home" [ref=e11] [cursor=pointer]:
+        - /url: /
+        - img [ref=e12]
+        - text: Home
+      - link "Get Started" [ref=e15] [cursor=pointer]:
+        - /url: /register
+  - main [ref=e16]:
+    - region "Secure Access Node" [ref=e17]:
+      - generic [ref=e18]: Secure Identity Gateway
+      - heading "Secure Access Node" [level=1] [ref=e20]:
+        - text: Secure
+        - generic [ref=e21]: Access Node
+      - paragraph [ref=e22]: Continue into QGuard with a gold-hardened command center interface, live quantum session checks, and post-quantum access telemetry.
+      - generic "Session security checks" [ref=e23]:
+        - generic [ref=e24]:
+          - img [ref=e25]
+          - generic [ref=e28]: PQC Session
+          - strong [ref=e29]: ML-KEM Ready
+        - generic [ref=e30]:
+          - img [ref=e31]
+          - generic [ref=e34]: Entropy
+          - strong [ref=e35]: QRNG Seeded
+        - generic [ref=e36]:
+          - img [ref=e37]
+          - generic [ref=e39]: Threat Feed
+          - strong [ref=e40]: Live
+    - region "Login form" [ref=e41]:
+      - generic [ref=e42]:
+        - generic [ref=e43]:
+          - img [ref=e45]
+          - generic [ref=e47]: QGUARD
+        - paragraph [ref=e48]: QUANTUM PROTOCOL
+        - heading "Identity Verification" [level=2] [ref=e49]
+        - paragraph [ref=e50]: Verify quantum identity signature to proceed.
+        - generic [ref=e51]:
+          - generic [ref=e52]:
+            - generic [ref=e53]: Email Address
+            - generic [ref=e54]:
+              - img
+              - textbox "Enter your email" [ref=e55]
+          - generic [ref=e56]:
+            - generic [ref=e57]: Password
+            - generic [ref=e58]:
+              - img
+              - textbox "Enter secure passphrase" [ref=e59]
+          - generic [ref=e60]:
+            - generic [ref=e61] [cursor=pointer]:
+              - checkbox "Keep Terminal Persistent" [ref=e62]
+              - text: Keep Terminal Persistent
+            - button "Lost Token?" [ref=e63] [cursor=pointer]
+          - button "Initialize Session" [ref=e64] [cursor=pointer]:
+            - text: Initialize Session
+            - img [ref=e65]
+          - generic [ref=e69]: or
+          - button "Continue with Google" [ref=e71] [cursor=pointer]:
+            - img [ref=e72]
+            - text: Continue with Google
+          - paragraph [ref=e77]:
+            - text: New deployment?
+            - link "Request Credentials" [ref=e78] [cursor=pointer]:
+              - /url: /register
+      - generic [ref=e79]:
+        - generic [ref=e80]:
+          - generic [ref=e81]: Quantum Sync Status
+          - generic [ref=e82]: 100%
+        - generic [ref=e86]: Encrypted Connection Established

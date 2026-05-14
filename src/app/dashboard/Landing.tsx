@@ -6,6 +6,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from 'motion/react';
+import { Hero195 } from "@/components/ui/hero-195";
 import { 
   Activity,
   Gamepad2,
@@ -42,14 +43,14 @@ import {
   Flame,
   type LucideIcon
 } from 'lucide-react';
-import { CyberBackground } from '../components/CyberBackground';
-import { Button } from '../components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { Badge } from '../components/ui/badge';
-import { TooltipProvider } from '../components/ui/tooltip';
-import hourGlassVideo from '../assets/Hour_Glass_Video.mp4';
-import hourglassImage from '../assets/images/futuristic_hourglass_sand_1778137402905.png';
-import roadmapImage from '../assets/images/quantum_security_roadmap_assets_1778137420732.png';
+import { CyberBackground } from '@/components/CyberBackground';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { TooltipProvider } from '@/components/ui/tooltip';
+import hourGlassVideo from '@/assets/Hour_Glass_Video.mp4';
+import hourglassImage from '@/assets/images/futuristic_hourglass_sand_1778137402905.png';
+import roadmapImage from '@/assets/images/quantum_security_roadmap_assets_1778137420732.png';
 
 // Asset paths
 const ASSETS = {
@@ -159,6 +160,17 @@ const ENTERPRISE_PROTECTION_FEATURES: EnterpriseProtectionFeature[] = [
     status: "Real-Time",
     image: "/monitoring.png",
     icon: Activity
+  },
+  {
+    id: "governance",
+    name: "Governance",
+    title: "Governance & Compliance",
+    description:
+      "Enterprise-grade policy enforcement and compliance reporting. Align your cryptographic posture with NIST 800-203 and CNSA 2.0 standards automatically with full audit trails.",
+    metric: "100% Compliant",
+    status: "Audited",
+    image: "/governance.png",
+    icon: FileCheck
   }
 ];
 
@@ -1801,6 +1813,32 @@ export default function App() {
         <section className="py-20 bg-cyber-black relative overflow-hidden">
           <div className="max-w-7xl mx-auto px-6">
             <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+              className="text-center mb-16 relative"
+            >
+              {/* Background Glow */}
+              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[60%] h-24 bg-gold/10 blur-[60px] rounded-full pointer-events-none" />
+              
+              <h2 className="text-4xl md:text-6xl font-black uppercase tracking-tight text-transparent bg-clip-text bg-gradient-to-b from-[#FFF3D0] via-[#D4AF37] to-[#8A6D3B] drop-shadow-[0_0_30px_rgba(212,175,55,0.55)]">
+                They’re Harvesting Your Data <span className="text-white gold-glow italic">Right Now</span>
+              </h2>
+              
+              <motion.div 
+                animate={{ opacity: [0.4, 1, 0.4] }}
+                transition={{ duration: 2, repeat: Infinity }}
+                className="mt-6 flex justify-center items-center gap-6"
+              >
+                <div className="h-px w-24 bg-gradient-to-r from-transparent via-gold to-transparent" />
+                <span className="text-gold font-mono text-xs font-bold uppercase tracking-[0.4em] drop-shadow-[0_0_8px_rgba(212,175,55,0.8)]">
+                  Ongoing Cyber Siphoning
+                </span>
+                <div className="h-px w-24 bg-gradient-to-r from-transparent via-gold to-transparent" />
+              </motion.div>
+            </motion.div>
+
+            <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               whileInView={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.8 }}
@@ -2194,6 +2232,7 @@ export default function App() {
             </motion.div>
 
             <EnterpriseProtectionShowcase />
+            <Hero195 />
             <QuantumSecurityUseCasesSection />
             <TestimonialsSection />
             <PricingSection />

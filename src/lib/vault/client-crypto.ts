@@ -174,7 +174,7 @@ export function decryptFileLocal(
  * Local encryption for zero-knowledge files.
  */
 export function encryptFileLocal(data: Uint8Array, recipientPublicKey: Uint8Array) {
-  const { sharedSecret, ciphertext } = ml_kem768.encapsulate(recipientPublicKey)
+  const { sharedSecret, cipherText } = ml_kem768.encapsulate(recipientPublicKey)
   const aesKey = sharedSecret.slice(0, 32)
   const nonce = window.crypto.getRandomValues(new Uint8Array(12))
   
@@ -183,7 +183,7 @@ export function encryptFileLocal(data: Uint8Array, recipientPublicKey: Uint8Arra
   
   return {
     encryptedData: encrypted,
-    kemCiphertext: toHex(ciphertext),
+    kemCiphertext: toHex(cipherText),
     aesNonce: toHex(nonce),
     integrityHash: toHex(sha256(data)),
     originalSize: data.length

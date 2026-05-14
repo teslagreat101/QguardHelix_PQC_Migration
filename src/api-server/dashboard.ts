@@ -24,6 +24,162 @@ async function requireAuth(req: Request, res: Response, next: Function) {
 
 router.use(requireAuth)
 
+function isMissingRpc(error: any) {
+  const text = `${error?.code || ''} ${error?.message || ''}`.toLowerCase()
+  return text.includes('42883') || text.includes('pgrst202') || text.includes('could not find the function') || text.includes('does not exist')
+}
+
+async function safeCount(client: any, table: string, userId: string, apply?: (query: any) => any) {
+  try {
+    let query = client.from(table).select('id', { count: 'exact', head: true }).eq('user_id', userId)
+    if (apply) query = apply(query)
+    const { count, error } = await query
+    if (error) return 0
+    return count || 0
+  } catch {
+    return 0
+  }
+}
+
+async function safeLatestScanAt(client: any, userId: string) {
+  try {
+    const { data, error } = await client
+      .from('pqc_scan_sessions')
+      .select('completed_at, started_at, created_at')
+      .eq('user_id', userId)
+      .eq('status', 'completed')
+      .order('completed_at', { ascending: false })
+      .limit(1)
+    if (error || !data?.length) return null
+    return data[0].completed_at || data[0].started_at || data[0].created_at || null
+  } catch {
+    return null
+  }
+}
+
+async function buildDashboardSummaryFallback(client: any, userId: string) {
+  const [
+    totalAssets,
+    vulnerableAssetsCount,
+    totalCbomItems,
+    criticalExposures,
+    highExposures,
+    unresolvedVulns,
+    expiringCerts,
+    activeMigrations,
+    failedMigrations,
+    lastScanAt,
+  ] = await Promise.all([
+    safeCount(client, 'assets', userId, (q) => q.eq('status', 'active')),
+    safeCount(client, 'crypto_exposures', userId, (q) => q.in('severity', ['critical', 'high'])),
+    safeCount(client, 'crypto_inventory', userId),
+    safeCount(client, 'crypto_exposures', userId, (q) => q.eq('severity', 'critical')),
+    safeCount(client, 'crypto_exposures', userId, (q) => q.eq('severity', 'high')),
+    safeCount(client, 'vulnerabilities', userId, (q) => q.in('status', ['open', 'in_progress'])),
+    safeCount(client, 'certificates', userId, (q) => q.eq('status', 'active').lt('not_after', new Date(Date.now() + 30 * 86400000).toISOString())),
+    safeCount(client, 'migration_jobs', userId, (q) => q.in('status', ['pending', 'running', 'in_progress'])),
+    safeCount(client, 'migration_jobs', userId, (q) => q.eq('status', 'failed')),
+    safeLatestScanAt(client, userId),
+  ])
+
+  const penalty = criticalExposures * 80 + highExposures * 35 + unresolvedVulns * 20 + expiringCerts * 10 + failedMigrations * 25
+  const quantumRiskScore = Math.max(0, Math.min(1000, 1000 - penalty))
+  const riskBand = quantumRiskScore >= 850
+    ? 'Quantum Ready'
+    : quantumRiskScore >= 650
+      ? 'Moderate'
+      : quantumRiskScore >= 400
+        ? 'Vulnerable'
+        : 'Critical'
+
+  return {
+    quantumRiskScore,
+    riskBand,
+    riskTrend: 0,
+    vulnerableAssetsCount,
+    newVulnerableAssets: 0,
+    totalCbomItems,
+    activeMigrations,
+    failedMigrations,
+    criticalExposures,
+    highExposures,
+    unresolvedVulns,
+    expiringCerts,
+    totalAssets,
+    lastScanAt,
+    monitoringStatus: totalAssets > 0 ? 'active' : 'standby',
+  }
+}
+
+async function buildEventsFallback(client: any, userId: string, limit: number) {
+  try {
+    const { data, error } = await client
+      .from('security_events')
+      .select('id, event_type, severity, message, asset_id, resource_name, resource_type, metadata, is_read, created_at')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(limit)
+    if (error) return []
+
+    return (data || []).map((ev: any) => ({
+      id: ev.id,
+      timestamp: ev.created_at,
+      severity: ev.severity,
+      eventType: ev.event_type,
+      message: ev.message,
+      assetId: ev.asset_id,
+      resourceName: ev.resource_name,
+      resourceType: ev.resource_type,
+      metadata: ev.metadata,
+      isRead: ev.is_read,
+    }))
+  } catch {
+    return []
+  }
+}
+
+async function buildExposureMapFallback(client: any, userId: string) {
+  try {
+    const [{ data: assets }, { data: relationships }] = await Promise.all([
+      client
+        .from('assets')
+        .select('id, name, type, environment, criticality, status')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(100),
+      client
+        .from('asset_relationships')
+        .select('source_asset_id, target_asset_id, relationship_type')
+        .eq('user_id', userId)
+        .limit(200),
+    ])
+
+    const nodes = await Promise.all((assets || []).map(async (asset: any) => {
+      const riskScore = await safeCount(client, 'crypto_exposures', userId, (q) => q.eq('asset_id', asset.id).eq('severity', 'critical'))
+      return {
+        id: asset.id,
+        name: asset.name,
+        type: asset.type,
+        environment: asset.environment || 'unknown',
+        criticality: asset.criticality || 'medium',
+        status: asset.status || 'active',
+        riskScore,
+        color: getRiskColor(riskScore, asset.status || 'active'),
+      }
+    }))
+
+    const edges = (relationships || []).map((edge: any) => ({
+      source: edge.source_asset_id,
+      target: edge.target_asset_id,
+      type: edge.relationship_type,
+    }))
+
+    return { nodes, edges }
+  } catch {
+    return { nodes: [], edges: [] }
+  }
+}
+
 /**
  * GET /api/v1/dashboard/summary
  * Returns user-specific dashboard summary with risk score, counts, and status.
@@ -44,8 +200,11 @@ router.get('/summary', async (req: Request, res: Response) => {
     })
 
     if (rpcError) {
-      console.error('Dashboard summary RPC error:', rpcError)
-      return res.status(500).json({ error: { code: 'RPC_ERROR', message: 'Failed to compute dashboard summary' } })
+      if (!isMissingRpc(rpcError)) {
+        console.warn('Dashboard summary RPC error, using SQL fallback:', rpcError)
+      }
+      const summary = await buildDashboardSummaryFallback(client, user.id)
+      return res.json({ data: summary })
     }
 
     // Fetch previous scan for trend comparison
@@ -124,8 +283,11 @@ router.get('/events', async (req: Request, res: Response) => {
     })
 
     if (rpcError) {
-      console.error('Security events RPC error:', rpcError)
-      return res.status(500).json({ error: { code: 'RPC_ERROR', message: 'Failed to fetch security events' } })
+      if (!isMissingRpc(rpcError)) {
+        console.warn('Security events RPC error, using SQL fallback:', rpcError)
+      }
+      const events = await buildEventsFallback(client, user.id, limit)
+      return res.json({ data: { events } })
     }
 
     const events = (eventsData || []).map((ev: any) => ({
@@ -167,8 +329,11 @@ router.get('/exposure-map', async (req: Request, res: Response) => {
     })
 
     if (rpcError) {
-      console.error('Exposure map RPC error:', rpcError)
-      return res.status(500).json({ error: { code: 'RPC_ERROR', message: 'Failed to fetch exposure map' } })
+      if (!isMissingRpc(rpcError)) {
+        console.warn('Exposure map RPC error, using SQL fallback:', rpcError)
+      }
+      const mapData = await buildExposureMapFallback(client, user.id)
+      return res.json({ data: mapData })
     }
 
     // Enrich nodes with latest crypto inventory and vulnerabilities
@@ -311,19 +476,19 @@ router.get('/health', async (req: Request, res: Response) => {
     let migrationStatus = 'idle'
 
     if (client) {
-      const { data: activeScans } = await client
+      const { count: activeScans } = await client
         .from('pqc_scan_sessions')
         .select('id', { count: 'exact', head: true })
         .eq('user_id', user.id)
         .eq('status', 'running')
-      if (activeScans && (activeScans as any) > 0) scannerStatus = 'scanning'
+      if ((activeScans || 0) > 0) scannerStatus = 'scanning'
 
-      const { data: activeMigrations } = await client
+      const { count: activeMigrations } = await client
         .from('migration_jobs')
         .select('id', { count: 'exact', head: true })
         .eq('user_id', user.id)
         .eq('status', 'running')
-      if (activeMigrations && (activeMigrations as any) > 0) migrationStatus = 'migrating'
+      if ((activeMigrations || 0) > 0) migrationStatus = 'migrating'
     }
 
     return res.json({

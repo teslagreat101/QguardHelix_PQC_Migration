@@ -26,7 +26,7 @@ function fromHex(hex: string): Uint8Array {
  */
 export function encryptFile(data: Uint8Array, recipientPublicKey: Uint8Array) {
   // 1. Encapsulate a shared secret using ML-KEM-768
-  const { sharedSecret, ciphertext } = ml_kem768.encapsulate(recipientPublicKey)
+  const { sharedSecret, cipherText } = ml_kem768.encapsulate(recipientPublicKey)
   
   // 2. Use the shared secret to derive a 256-bit AES key
   // We use the shared secret directly as it's already high entropy from ML-KEM
@@ -46,7 +46,7 @@ export function encryptFile(data: Uint8Array, recipientPublicKey: Uint8Array) {
 
   return {
     encryptedData: new Uint8Array(encryptedData),
-    encryptedDataKey: toHex(ciphertext),
+    encryptedDataKey: toHex(cipherText),
     aesNonce: toHex(nonce),
     integrityHash,
     algorithm: 'ML-KEM-768+AES-256-GCM'

@@ -6,6 +6,7 @@ import {
   ServiceAPIPanel, TabNav,
   inputStyle, labelStyle, sectionTitle, resultMetaStyle, resultMetaItem, resultMetaLabel, resultMetaValue,
 } from '@/components/qrng/shared'
+import { X } from 'lucide-react'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -1244,7 +1245,7 @@ export default function OTPPage() {
 
         <QRNGStatusBanner qrngStatus={qrngStatus} liveTelemetry={liveTelemetry} />
 
-          <TabNav<PageTab>
+          <TabNav<Tab>
           tabs={tabs as any}
           active={activeTab}
           onChange={setActiveTab}

@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Shield, Mail, Lock, User, ArrowRight, Loader2, KeyRound, Activity, AlertCircle, Circle } from 'lucide-react';
-import { supabase } from '../lib/supabase';
-import { Button } from '../components/ui/button';
+import { supabase } from '@/lib/supabase';
+import { Button } from '@/components/ui/button';
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);

@@ -1,0 +1,441 @@
+QGuard Local Agent and Connector Setup Guide
+============================================
+
+Purpose
+-------
+The QGuard local agent is a lightweight collector that runs inside a customer's authorized environment. It collects defensive cryptographic metadata and sends it to the QGuard backend so the platform can build:
+
+- Cryptography Bill of Materials (CBOM)
+- Asset inventory
+- Crypto exposure map
+- PQC readiness results
+- Scanner history
+- Audit records
+- Alerts
+
+This agent is defensive only. It does not exploit systems, bypass authentication, collect passwords, collect private keys, or perform unauthorized reconnaissance.
+
+
+Where The Agent Lives
+---------------------
+Agent source:
+
+tools/qguard-agent/agent.ts
+
+Run commands:
+
+npm run agent:scan
+npm run agent:watch
+
+Backend API:
+
+src/api-server/agent-scanner.ts
+
+Database schema:
+
+supabase/dashboard-schema.sql
+
+Agent policy is stored in:
+
+scanner_agent_policies
+
+Agent evidence is stored in:
+
+scanner_evidence
+
+Agent alerts are stored in:
+
+scanner_alerts
+
+
+What The Agent Collects
+-----------------------
+The agent currently collects authorized metadata for:
+
+- TLS certificate public metadata
+- TLS protocol version
+- TLS negotiated cipher metadata
+- SSH public banner and KEXINIT metadata
+- Package manifests such as package.json, requirements.txt, pyproject.toml, pom.xml, go.mod, Cargo.toml
+- Redacted config-file crypto references
+
+The agent does not upload file contents. For config files it uploads only:
+
+- File path
+- Line number
+- Rule label
+- Detected algorithm
+- Redacted evidence marker
+
+
+Step 1: Apply The Database Schema
+---------------------------------
+The platform owner must run:
+
+supabase/dashboard-schema.sql
+
+in the Supabase SQL Editor.
+
+This creates the required tables:
+
+- scanner_agents
+- agent_heartbeats
+- connector_accounts
+- scanner_evidence
+- scanner_alerts
+- scanner_agent_policies
+
+It also enables RLS and Supabase Realtime for the scanner tables.
+
+
+Step 2: Start The QGuard App/API
+--------------------------------
+For local development:
+
+npm run dev
+
+The API should be available at:
+
+http://localhost:3000/api/v1
+
+For a standalone API process:
+
+npm run serve:api
+
+Production should use HTTPS, for example:
+
+https://qguard.example.com/api/v1
+
+
+Step 3: Enroll A Customer Agent
+-------------------------------
+An authenticated user or tenant admin enrolls an agent. Enrollment creates:
+
+- Agent ID
+- One-time agent token
+- Default policy
+- Tenant/user ownership binding
+
+PowerShell example:
+
+$env:QGUARD_API_URL = "http://localhost:3000"
+$env:QGUARD_USER_TOKEN = "paste-the-authenticated-user-access-token-here"
+
+$body = @{
+  name = "Production Scanner Agent 01"
+  hostname = "customer-prod-host-01"
+  platform = "windows"
+  version = "0.1.0"
+  capabilities = @{
+    tls = $true
+    ssh = $true
+    packages = $true
+    configs = $true
+  }
+  policy = @{
+    enabled = $true
+    intervalSeconds = 300
+    allowedTargets = @(
+      "https://api.customer.com",
+      "ssh://server.customer.com:22"
+    )
+    allowedPaths = @(
+      "C:\Apps\CustomerApi"
+    )
+    scanTypes = @(
+      "tls",
+      "ssh",
+      "packages",
+      "configs"
+    )
+    alertThreshold = "moderate"
+  }
+} | ConvertTo-Json -Depth 8
+
+Invoke-RestMethod `
+  -Method Post `
+  -Uri "$env:QGUARD_API_URL/api/v1/agent-scanner/agents/enroll" `
+  -Headers @{ Authorization = "Bearer $env:QGUARD_USER_TOKEN" } `
+  -ContentType "application/json" `
+  -Body $body
+
+Save the returned values:
+
+- agentId
+- agentToken
+
+Important: the agent token is shown once. Store it securely.
+
+
+Step 4: Configure The Agent Environment
+---------------------------------------
+On the customer machine where the collector will run:
+
+$env:QGUARD_API_URL = "http://localhost:3000"
+$env:QGUARD_AGENT_ID = "paste-agent-id-here"
+$env:QGUARD_AGENT_TOKEN = "paste-agent-token-here"
+
+For production:
+
+$env:QGUARD_API_URL = "https://qguard.example.com"
+
+The agent only makes outbound API calls to QGuard. It does not open inbound ports.
+
+
+Step 5: Run A One-Time Test Scan
+--------------------------------
+Run:
+
+npm run agent:scan
+
+Expected behavior:
+
+1. Agent authenticates.
+2. Agent pulls policy.
+3. Agent scans only allowed targets and allowed paths.
+4. Agent uploads evidence.
+5. Backend creates CBOM, asset, exposure, scan result, alert, and audit records.
+6. Command exits.
+
+Use this for initial testing.
+
+
+Step 6: Run Continuous Monitoring
+---------------------------------
+Run:
+
+npm run agent:watch
+
+Expected behavior:
+
+1. Agent authenticates.
+2. Agent pulls policy.
+3. Agent scans on the configured interval.
+4. Agent uploads heartbeat, telemetry, and evidence.
+5. Backend updates alerts and dashboard data.
+6. Agent keeps running.
+
+For real customer deployments, use agent:watch.
+
+
+Step 7: Deploy As A Background Service
+--------------------------------------
+For a simple MVP deployment, run agent:watch under a process manager.
+
+Windows options:
+
+- Windows Task Scheduler
+- NSSM
+- PM2
+- Windows Service wrapper
+
+Linux options:
+
+- systemd
+- PM2
+- Docker
+- Kubernetes CronJob or Deployment
+
+Example Linux systemd service:
+
+[Unit]
+Description=QGuard Local Scanner Agent
+After=network-online.target
+
+[Service]
+WorkingDirectory=/opt/qguard
+Environment=QGUARD_API_URL=https://qguard.example.com
+Environment=QGUARD_AGENT_ID=paste-agent-id-here
+Environment=QGUARD_AGENT_TOKEN=paste-agent-token-here
+ExecStart=/usr/bin/npm run agent:watch
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+
+
+Step 8: Verify Agent Health
+---------------------------
+The platform admin can verify through API or database.
+
+List agents:
+
+GET /api/v1/agent-scanner/agents
+
+View heartbeats:
+
+GET /api/v1/agent-scanner/agents/{agentId}/heartbeats
+
+View evidence:
+
+GET /api/v1/agent-scanner/evidence
+
+View alerts:
+
+GET /api/v1/agent-scanner/alerts
+
+Database tables to check:
+
+- scanner_agents
+- agent_heartbeats
+- scanner_evidence
+- scanner_alerts
+- crypto_inventory
+- crypto_exposures
+- assets
+- pqc_scan_sessions
+- pqc_scan_results
+- security_events
+- audit_logs
+
+
+Step 9: Confirm Dashboard Results
+---------------------------------
+After a successful scan, results should appear in:
+
+- /dashboard/scanner
+- /dashboard/assets
+- /dashboard/cbom
+- /dashboard/crypto-exposure
+
+If no results appear, check:
+
+1. Agent is enrolled.
+2. Agent token is correct.
+3. Agent policy has allowedTargets or allowedPaths.
+4. The target is reachable from the customer machine.
+5. Supabase schema was applied.
+6. Backend has Supabase environment variables configured.
+7. agent_heartbeats has recent records.
+8. scanner_evidence has uploaded records.
+
+
+How To Update Agent Policy
+--------------------------
+Use:
+
+PUT /api/v1/agent-scanner/agents/{agentId}/policy
+
+Example policy fields:
+
+enabled:
+Turns the agent on or off.
+
+intervalSeconds:
+How often continuous monitoring runs. Minimum is 60 seconds.
+
+allowedTargets:
+Only these TLS/SSH targets may be scanned.
+
+allowedPaths:
+Only these local folders may be scanned.
+
+scanTypes:
+Allowed scan modules. Supported values:
+
+- tls
+- ssh
+- packages
+- configs
+
+alertThreshold:
+Minimum severity required to create scanner alerts.
+
+Supported values:
+
+- low
+- moderate
+- medium
+- high
+- critical
+
+
+Security Rules
+--------------
+The agent is tenant-bound and policy-bound.
+
+Server-side enforcement rejects evidence that does not match the agent policy.
+
+The agent must not scan:
+
+- Third-party assets without authorization
+- Private keys
+- Passwords
+- Tokens
+- Secrets
+- Credential stores
+- Personal files
+- Unapproved directories
+
+The agent skips common high-volume or unsafe directories:
+
+- node_modules
+- .git
+- dist
+- build
+- .next
+- coverage
+- cache directories
+
+The agent also skips .env files.
+
+
+Connector Setup
+---------------
+Connectors are for cloud/SaaS accounts such as GitHub, AWS, Azure, GCP, Cloudflare, and similar providers.
+
+Connector account records are stored in:
+
+connector_accounts
+
+Connector evidence is uploaded through:
+
+POST /api/v1/agent-scanner/connectors/{connectorId}/evidence
+
+Connectors should use read-only permissions and upload the same scanner_evidence shape as the local agent.
+
+Recommended connector evidence:
+
+- TLS policy metadata
+- Public certificate metadata
+- KMS key metadata
+- Load balancer TLS settings
+- Dependency manifests
+- Repository crypto library references
+- SSH key metadata where available through provider APIs
+
+
+Troubleshooting
+---------------
+AGENT_UNAUTHORIZED:
+Agent ID or token is wrong, revoked, or missing.
+
+EVIDENCE_OUT_OF_POLICY:
+The uploaded evidence does not match allowedTargets or allowedPaths.
+
+NO_EVIDENCE:
+The agent did not find supported crypto metadata in the authorized scope.
+
+No dashboard results:
+Check scanner_evidence first, then crypto_inventory, assets, and crypto_exposures.
+
+No heartbeat:
+Check QGUARD_API_URL, network egress, and agent token.
+
+Repeated offline alert:
+agent:watch is not running or cannot reach the backend.
+
+
+Recommended Customer Rollout
+----------------------------
+1. Start with one non-production host.
+2. Enroll one agent.
+3. Allowlist one TLS target and one application folder.
+4. Run npm run agent:scan.
+5. Confirm scanner_evidence and CBOM records.
+6. Run npm run agent:watch.
+7. Confirm heartbeats and alerts.
+8. Expand allowedTargets and allowedPaths gradually.
+9. Deploy as a background service.
+10. Repeat for each tenant/customer environment.

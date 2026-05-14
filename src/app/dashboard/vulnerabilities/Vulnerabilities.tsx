@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ShieldAlert, AlertCircle, ShieldCheck, Filter, Search } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { supabase } from '@/lib/supabase';
 import { motion } from 'framer-motion';
 
 export default function Vulnerabilities() {

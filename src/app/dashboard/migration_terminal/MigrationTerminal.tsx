@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { Terminal as TerminalIcon, Play, Square, RotateCcw, ShieldCheck, Cpu, Key } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { supabase } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function MigrationTerminal() {

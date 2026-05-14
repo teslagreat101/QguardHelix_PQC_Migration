@@ -1,0 +1,333 @@
+Kindly migrate and upgrade the existing QGuard Helix architecture from:
+
+React + Vite + Supabase + Express API
+
+into a scalable enterprise-grade architecture using:
+
+Next.js + React + Supabase + Existing Express/FastAPI Backend Services
+
+The goal is to preserve the existing functionality while upgrading the frontend architecture into a modern production-ready Next.js App Router structure suitable for a multi-tenant enterprise cybersecurity SaaS platform.
+
+Do NOT break existing features, backend APIs, telemetry, authentication, Supabase integrations, or UI functionality during migration.
+
+🎯 Target Architecture
+
+Implement the following architecture:
+
+Frontend:
+- Next.js App Router
+- React
+- TypeScript
+- Tailwind CSS
+- Framer Motion
+- React Query / Zustand (if needed)
+
+Backend Services:
+- Existing Express API (retain)
+- Optional FastAPI microservices for scanners/migration engines
+
+Database/Auth/Realtime:
+- Supabase Auth
+- Supabase Postgres
+- Supabase Realtime
+- Supabase Storage
+- Supabase RLS
+
+Infrastructure:
+- Modular enterprise folder structure
+- Multi-tenant ready
+- Production deployment ready
+
+🏗️ Migration Goals
+
+The migration should:
+
+Preserve all existing dashboard/pages/modules
+Preserve Supabase authentication
+Preserve backend Express APIs
+Preserve SSE/WebSocket telemetry
+Preserve all existing functionality and UI
+Improve scalability and maintainability
+Upgrade routing architecture to Next.js App Router
+Support enterprise multi-tenant SaaS architecture
+Improve performance and production readiness
+
+📂 Create Proper Enterprise Folder Structure
+
+Refactor the project into:
+
+/src
+ ├── app/
+ │    ├── (public)/
+ │    ├── admin/
+ │    ├── dashboard/
+ │    ├── auth/
+ │    ├── api/
+ │    └── layout.tsx
+ │
+ ├── components/
+ │    ├── ui/
+ │    ├── dashboard/
+ │    ├── admin/
+ │    ├── charts/
+ │    ├── telemetry/
+ │    └── animations/
+ │
+ ├── hooks/
+ ├── lib/
+ ├── services/
+ ├── store/
+ ├── types/
+ ├── utils/
+ ├── styles/
+ └── middleware.ts
+
+Maintain clean separation of concerns and reusable modular architecture.
+
+⚛️ Next.js App Router Migration
+
+Replace the old Vite + React Router architecture with Next.js App Router.
+
+Convert existing routes into:
+
+/src/app/dashboard/*
+/src/app/admin/*
+/src/app/auth/*
+
+Examples:
+
+/dashboard/pqc-scanner
+/dashboard/cbom-explorer
+/dashboard/crypto-exposure
+/dashboard/assets
+/dashboard/migration
+/dashboard/threat-intel
+/dashboard/governance
+/dashboard/compliance
+/dashboard/settings
+
+Ensure:
+
+Nested layouts work correctly
+Shared dashboard layouts are preserved
+Protected routes function properly
+Role-based navigation remains functional
+
+🔐 Authentication Migration
+
+Preserve and migrate existing Supabase authentication.
+
+Implement:
+
+Secure middleware protection
+Session persistence
+Protected dashboard routes
+RBAC validation
+Tenant-aware authentication
+Admin-only route protection
+MFA compatibility
+
+Create reusable auth helpers:
+
+/lib/supabase/
+/lib/auth/
+/hooks/useAuth()
+/hooks/usePermissions()
+
+🏛️ Multi-Tenant Support
+
+Prepare the platform for enterprise multi-tenant SaaS architecture.
+
+Implement:
+
+Tenant-aware routing
+Tenant context provider
+Role-based access control
+Tenant isolation
+Tenant-aware dashboard rendering
+Supabase RLS enforcement
+
+Ensure:
+
+No cross-tenant data exposure
+Tenant-scoped queries
+Tenant-specific assets/scans/users
+
+🔌 Preserve Existing Backend APIs
+
+Keep the existing Express API backend operational.
+
+Do NOT rewrite working backend services unless necessary.
+
+Connect Next.js frontend to:
+
+Express APIs
+FastAPI services (optional)
+Supabase services
+Realtime telemetry streams
+
+Preserve:
+
+Scanner APIs
+Migration APIs
+Threat intel APIs
+Telemetry endpoints
+Authentication APIs
+WebSocket/SSE pipelines
+
+📡 Real-Time Telemetry
+
+Ensure real-time telemetry continues functioning after migration.
+
+Preserve and wire:
+
+SSE
+WebSockets
+Supabase realtime
+Live dashboards
+Live migration telemetry
+Live scanner logs
+Threat feeds
+Activity streams
+
+Create reusable hooks:
+
+/hooks/useRealtimeTelemetry()
+/hooks/useScanProgress()
+/hooks/useMigrationLogs()
+
+🎨 UI/UX Preservation
+
+Maintain the existing:
+
+Golden Quantum Cyber Defense UI theme
+Glassmorphism effects
+Animated border beam effects
+Cybersecurity visual identity
+Responsive layouts
+Dashboard aesthetics
+
+Preserve:
+
+Existing cards
+Charts
+Sidebar navigation
+Hero sections
+Animations
+Hover effects
+Motion transitions
+
+⚡ Performance Improvements
+
+Optimize for enterprise-grade performance:
+
+Code splitting
+Lazy loading
+Dynamic imports
+Server components where appropriate
+Client components only where needed
+Image optimization
+Route-level loading states
+Skeleton loaders
+Memoization
+Efficient realtime subscriptions
+
+Ensure smooth 60fps UI interactions.
+
+🧠 Recommended State Management
+
+Implement scalable state management:
+
+Recommended:
+
+Zustand
+OR
+React Query + Context
+
+Use for:
+
+Auth state
+Tenant state
+Dashboard telemetry
+Scanner status
+User preferences
+Notifications
+Real-time updates
+
+🛡️ Security Requirements
+
+Implement production-grade security:
+
+Protected API routes
+Secure middleware
+RBAC enforcement
+Tenant isolation
+Supabase RLS validation
+CSRF/XSS protections
+Input validation
+Secure cookies/session handling
+Environment variable protection
+API rate limiting
+
+Ensure:
+
+No sensitive data leaks
+No broken auth flows
+No client-side permission bypasses
+📦 Migration Process
+
+Perform migration incrementally:
+
+Phase 1:
+
+Create new Next.js app
+Configure Tailwind/ShadCN
+Configure Supabase
+Configure layouts/routes
+
+Phase 2:
+
+Migrate shared components
+Migrate dashboard UI
+Migrate sidebar/navigation
+
+Phase 3:
+
+Migrate dashboard pages/modules
+Preserve backend API connections
+Preserve telemetry
+
+Phase 4:
+
+Implement auth middleware
+Implement multi-tenant support
+Implement RBAC
+
+Phase 5:
+
+Optimize performance
+Validate all routes
+Remove deprecated Vite pages/files
+
+🚀 Final Validation
+
+After migration:
+
+Verify:
+
+Homepage works
+Dashboard works
+Supabase auth works
+Express APIs still function
+Realtime telemetry works
+Multi-tenant isolation works
+Admin routes work
+Sidebar navigation works
+Existing features remain operational
+No broken imports/routes
+No hydration issues
+No rendering failures
+
+🎯 Final Goal
+
+Successfully transform the existing QGuard Helix platform from a Vite-based React application into a modern enterprise-grade Next.js SaaS architecture while preserving all existing features, Supabase integrations, backend APIs, telemetry systems, and Golden Quantum Cyber Defense UI design.

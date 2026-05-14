@@ -4,13 +4,13 @@ import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
   Shield, AlertTriangle, Zap, Search, Activity, 
-  RefreshCw, Lock, Radio, Database, ShieldCheck 
+  RefreshCw, Lock, Radio, Database, ShieldCheck, Globe
 } from 'lucide-react'
 import { dashboardService, DashboardSummary, ExposureMapData, SecurityEvent } from '@/lib/dashboard-service'
-import MetricCard from './MetricCard'
+import MetricCard from './metric_card/MetricCard'
 import QuantumExposureMap from './crypto_exposure_map/QuantumExposureMap'
-import SecurityEventsPanel from './SecurityEventsPanel'
-import RecommendationsPanel from './RecommendationsPanel'
+import SecurityEventsPanel from './security_events_panel/SecurityEventsPanel'
+import RecommendationsPanel from './recommendation_panel/RecommendationsPanel'
 
 export default function Dashboard() {
   const [summary, setSummary] = useState<DashboardSummary | null>(null)

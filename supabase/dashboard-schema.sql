@@ -4,6 +4,232 @@
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
+-- Compatibility guard for existing projects.
+-- CREATE TABLE IF NOT EXISTS does not add missing columns to tables that already
+-- exist, so old/partial tables can make the RLS policies below fail with:
+-- ERROR 42703: column "user_id" does not exist.
+DO $$
+DECLARE
+    tbl TEXT;
+    tables TEXT[] := ARRAY[
+        'assets', 'asset_relationships', 'crypto_inventory', 'crypto_exposures',
+        'vulnerabilities', 'certificates', 'migration_jobs', 'migration_events',
+        'pqc_scan_sessions', 'pqc_scan_results', 'vault_files', 'vault_audit_logs',
+        'qrng_events', 'security_events', 'compliance_evidence', 'audit_logs',
+        'user_devices', 'auth_events', 'scanner_agents', 'agent_heartbeats',
+        'connector_accounts', 'scanner_evidence', 'scanner_alerts',
+        'scanner_agent_policies'
+    ];
+BEGIN
+    FOREACH tbl IN ARRAY tables LOOP
+        IF to_regclass(format('public.%I', tbl)) IS NOT NULL THEN
+            EXECUTE format('ALTER TABLE public.%I ADD COLUMN IF NOT EXISTS user_id UUID', tbl);
+        END IF;
+    END LOOP;
+
+    IF to_regclass('public.assets') IS NOT NULL THEN
+        EXECUTE 'ALTER TABLE public.assets ADD COLUMN IF NOT EXISTS name VARCHAR(255)';
+        EXECUTE 'ALTER TABLE public.assets ADD COLUMN IF NOT EXISTS type VARCHAR(100)';
+        EXECUTE 'ALTER TABLE public.assets ADD COLUMN IF NOT EXISTS environment VARCHAR(50)';
+        EXECUTE 'ALTER TABLE public.assets ADD COLUMN IF NOT EXISTS region VARCHAR(50)';
+        EXECUTE 'ALTER TABLE public.assets ADD COLUMN IF NOT EXISTS ip_address VARCHAR(45)';
+        EXECUTE 'ALTER TABLE public.assets ADD COLUMN IF NOT EXISTS service_owner VARCHAR(255)';
+        EXECUTE 'ALTER TABLE public.assets ADD COLUMN IF NOT EXISTS criticality VARCHAR(20) DEFAULT ''medium''';
+        EXECUTE 'ALTER TABLE public.assets ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT ''active''';
+        EXECUTE 'ALTER TABLE public.assets ADD COLUMN IF NOT EXISTS metadata JSONB DEFAULT ''{}''::jsonb';
+        EXECUTE 'ALTER TABLE public.assets ADD COLUMN IF NOT EXISTS created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()';
+        EXECUTE 'ALTER TABLE public.assets ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()';
+    END IF;
+
+    IF to_regclass('public.asset_relationships') IS NOT NULL THEN
+        EXECUTE 'ALTER TABLE public.asset_relationships ADD COLUMN IF NOT EXISTS source_asset_id UUID';
+        EXECUTE 'ALTER TABLE public.asset_relationships ADD COLUMN IF NOT EXISTS target_asset_id UUID';
+        EXECUTE 'ALTER TABLE public.asset_relationships ADD COLUMN IF NOT EXISTS relationship_type VARCHAR(100)';
+        EXECUTE 'ALTER TABLE public.asset_relationships ADD COLUMN IF NOT EXISTS metadata JSONB DEFAULT ''{}''::jsonb';
+        EXECUTE 'ALTER TABLE public.asset_relationships ADD COLUMN IF NOT EXISTS created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()';
+    END IF;
+
+    IF to_regclass('public.crypto_inventory') IS NOT NULL THEN
+        EXECUTE 'ALTER TABLE public.crypto_inventory ADD COLUMN IF NOT EXISTS asset_id UUID';
+        EXECUTE 'ALTER TABLE public.crypto_inventory ADD COLUMN IF NOT EXISTS item_type VARCHAR(100)';
+        EXECUTE 'ALTER TABLE public.crypto_inventory ADD COLUMN IF NOT EXISTS name VARCHAR(255)';
+        EXECUTE 'ALTER TABLE public.crypto_inventory ADD COLUMN IF NOT EXISTS algorithm VARCHAR(100)';
+        EXECUTE 'ALTER TABLE public.crypto_inventory ADD COLUMN IF NOT EXISTS key_size INTEGER';
+        EXECUTE 'ALTER TABLE public.crypto_inventory ADD COLUMN IF NOT EXISTS protocol VARCHAR(100)';
+        EXECUTE 'ALTER TABLE public.crypto_inventory ADD COLUMN IF NOT EXISTS exposure_level VARCHAR(50)';
+        EXECUTE 'ALTER TABLE public.crypto_inventory ADD COLUMN IF NOT EXISTS is_vulnerable BOOLEAN DEFAULT TRUE';
+        EXECUTE 'ALTER TABLE public.crypto_inventory ADD COLUMN IF NOT EXISTS is_quantum_safe BOOLEAN DEFAULT FALSE';
+        EXECUTE 'ALTER TABLE public.crypto_inventory ADD COLUMN IF NOT EXISTS metadata JSONB DEFAULT ''{}''::jsonb';
+        EXECUTE 'ALTER TABLE public.crypto_inventory ADD COLUMN IF NOT EXISTS discovered_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()';
+        EXECUTE 'ALTER TABLE public.crypto_inventory ADD COLUMN IF NOT EXISTS created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()';
+    END IF;
+
+    IF to_regclass('public.crypto_exposures') IS NOT NULL THEN
+        EXECUTE 'ALTER TABLE public.crypto_exposures ADD COLUMN IF NOT EXISTS asset_id UUID';
+        EXECUTE 'ALTER TABLE public.crypto_exposures ADD COLUMN IF NOT EXISTS exposure_type VARCHAR(100)';
+        EXECUTE 'ALTER TABLE public.crypto_exposures ADD COLUMN IF NOT EXISTS severity VARCHAR(20)';
+        EXECUTE 'ALTER TABLE public.crypto_exposures ADD COLUMN IF NOT EXISTS description TEXT';
+        EXECUTE 'ALTER TABLE public.crypto_exposures ADD COLUMN IF NOT EXISTS detected_value TEXT';
+        EXECUTE 'ALTER TABLE public.crypto_exposures ADD COLUMN IF NOT EXISTS metadata JSONB DEFAULT ''{}''::jsonb';
+        EXECUTE 'ALTER TABLE public.crypto_exposures ADD COLUMN IF NOT EXISTS created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()';
+        EXECUTE 'ALTER TABLE public.crypto_exposures ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()';
+    END IF;
+
+    IF to_regclass('public.vulnerabilities') IS NOT NULL THEN
+        EXECUTE 'ALTER TABLE public.vulnerabilities ADD COLUMN IF NOT EXISTS asset_id UUID';
+        EXECUTE 'ALTER TABLE public.vulnerabilities ADD COLUMN IF NOT EXISTS title VARCHAR(255)';
+        EXECUTE 'ALTER TABLE public.vulnerabilities ADD COLUMN IF NOT EXISTS description TEXT';
+        EXECUTE 'ALTER TABLE public.vulnerabilities ADD COLUMN IF NOT EXISTS severity VARCHAR(20)';
+        EXECUTE 'ALTER TABLE public.vulnerabilities ADD COLUMN IF NOT EXISTS cvss_score NUMERIC(4,2)';
+        EXECUTE 'ALTER TABLE public.vulnerabilities ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT ''open''';
+        EXECUTE 'ALTER TABLE public.vulnerabilities ADD COLUMN IF NOT EXISTS source VARCHAR(100)';
+        EXECUTE 'ALTER TABLE public.vulnerabilities ADD COLUMN IF NOT EXISTS metadata JSONB DEFAULT ''{}''::jsonb';
+        EXECUTE 'ALTER TABLE public.vulnerabilities ADD COLUMN IF NOT EXISTS created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()';
+        EXECUTE 'ALTER TABLE public.vulnerabilities ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()';
+    END IF;
+
+    IF to_regclass('public.certificates') IS NOT NULL THEN
+        EXECUTE 'ALTER TABLE public.certificates ADD COLUMN IF NOT EXISTS asset_id UUID';
+        EXECUTE 'ALTER TABLE public.certificates ADD COLUMN IF NOT EXISTS name VARCHAR(255)';
+        EXECUTE 'ALTER TABLE public.certificates ADD COLUMN IF NOT EXISTS algorithm VARCHAR(100)';
+        EXECUTE 'ALTER TABLE public.certificates ADD COLUMN IF NOT EXISTS key_size INTEGER';
+        EXECUTE 'ALTER TABLE public.certificates ADD COLUMN IF NOT EXISTS issuer VARCHAR(255)';
+        EXECUTE 'ALTER TABLE public.certificates ADD COLUMN IF NOT EXISTS subject VARCHAR(255)';
+        EXECUTE 'ALTER TABLE public.certificates ADD COLUMN IF NOT EXISTS serial_number VARCHAR(255)';
+        EXECUTE 'ALTER TABLE public.certificates ADD COLUMN IF NOT EXISTS not_before TIMESTAMP WITH TIME ZONE';
+        EXECUTE 'ALTER TABLE public.certificates ADD COLUMN IF NOT EXISTS not_after TIMESTAMP WITH TIME ZONE';
+        EXECUTE 'ALTER TABLE public.certificates ADD COLUMN IF NOT EXISTS is_quantum_safe BOOLEAN DEFAULT FALSE';
+        EXECUTE 'ALTER TABLE public.certificates ADD COLUMN IF NOT EXISTS is_expiring_soon BOOLEAN DEFAULT FALSE';
+        EXECUTE 'ALTER TABLE public.certificates ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT ''active''';
+        EXECUTE 'ALTER TABLE public.certificates ADD COLUMN IF NOT EXISTS metadata JSONB DEFAULT ''{}''::jsonb';
+        EXECUTE 'ALTER TABLE public.certificates ADD COLUMN IF NOT EXISTS created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()';
+        EXECUTE 'ALTER TABLE public.certificates ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()';
+    END IF;
+
+    IF to_regclass('public.pqc_scan_sessions') IS NOT NULL THEN
+        EXECUTE 'ALTER TABLE public.pqc_scan_sessions ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT ''pending''';
+        EXECUTE 'ALTER TABLE public.pqc_scan_sessions ADD COLUMN IF NOT EXISTS target_scope TEXT';
+        EXECUTE 'ALTER TABLE public.pqc_scan_sessions ADD COLUMN IF NOT EXISTS progress INTEGER DEFAULT 0';
+        EXECUTE 'ALTER TABLE public.pqc_scan_sessions ADD COLUMN IF NOT EXISTS total_assets INTEGER DEFAULT 0';
+        EXECUTE 'ALTER TABLE public.pqc_scan_sessions ADD COLUMN IF NOT EXISTS scanned_assets INTEGER DEFAULT 0';
+        EXECUTE 'ALTER TABLE public.pqc_scan_sessions ADD COLUMN IF NOT EXISTS findings_count INTEGER DEFAULT 0';
+        EXECUTE 'ALTER TABLE public.pqc_scan_sessions ADD COLUMN IF NOT EXISTS metadata JSONB DEFAULT ''{}''::jsonb';
+        EXECUTE 'ALTER TABLE public.pqc_scan_sessions ADD COLUMN IF NOT EXISTS started_at TIMESTAMP WITH TIME ZONE';
+        EXECUTE 'ALTER TABLE public.pqc_scan_sessions ADD COLUMN IF NOT EXISTS completed_at TIMESTAMP WITH TIME ZONE';
+        EXECUTE 'ALTER TABLE public.pqc_scan_sessions ADD COLUMN IF NOT EXISTS created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()';
+        EXECUTE 'ALTER TABLE public.pqc_scan_sessions ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()';
+    END IF;
+
+    IF to_regclass('public.pqc_scan_results') IS NOT NULL THEN
+        EXECUTE 'ALTER TABLE public.pqc_scan_results ADD COLUMN IF NOT EXISTS scan_session_id UUID';
+        EXECUTE 'ALTER TABLE public.pqc_scan_results ADD COLUMN IF NOT EXISTS asset_id UUID';
+        EXECUTE 'ALTER TABLE public.pqc_scan_results ADD COLUMN IF NOT EXISTS finding_type VARCHAR(100)';
+        EXECUTE 'ALTER TABLE public.pqc_scan_results ADD COLUMN IF NOT EXISTS algorithm VARCHAR(100)';
+        EXECUTE 'ALTER TABLE public.pqc_scan_results ADD COLUMN IF NOT EXISTS threat_level VARCHAR(20)';
+        EXECUTE 'ALTER TABLE public.pqc_scan_results ADD COLUMN IF NOT EXISTS description TEXT';
+        EXECUTE 'ALTER TABLE public.pqc_scan_results ADD COLUMN IF NOT EXISTS remediation TEXT';
+        EXECUTE 'ALTER TABLE public.pqc_scan_results ADD COLUMN IF NOT EXISTS metadata JSONB DEFAULT ''{}''::jsonb';
+        EXECUTE 'ALTER TABLE public.pqc_scan_results ADD COLUMN IF NOT EXISTS created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()';
+    END IF;
+
+    IF to_regclass('public.scanner_agents') IS NOT NULL THEN
+        EXECUTE 'ALTER TABLE public.scanner_agents ADD COLUMN IF NOT EXISTS name VARCHAR(255)';
+        EXECUTE 'ALTER TABLE public.scanner_agents ADD COLUMN IF NOT EXISTS token_hash TEXT';
+        EXECUTE 'ALTER TABLE public.scanner_agents ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT ''active''';
+        EXECUTE 'ALTER TABLE public.scanner_agents ADD COLUMN IF NOT EXISTS hostname VARCHAR(255)';
+        EXECUTE 'ALTER TABLE public.scanner_agents ADD COLUMN IF NOT EXISTS platform VARCHAR(100)';
+        EXECUTE 'ALTER TABLE public.scanner_agents ADD COLUMN IF NOT EXISTS version VARCHAR(100)';
+        EXECUTE 'ALTER TABLE public.scanner_agents ADD COLUMN IF NOT EXISTS capabilities JSONB DEFAULT ''{}''::jsonb';
+        EXECUTE 'ALTER TABLE public.scanner_agents ADD COLUMN IF NOT EXISTS policy JSONB DEFAULT ''{}''::jsonb';
+        EXECUTE 'ALTER TABLE public.scanner_agents ADD COLUMN IF NOT EXISTS last_seen_at TIMESTAMP WITH TIME ZONE';
+        EXECUTE 'ALTER TABLE public.scanner_agents ADD COLUMN IF NOT EXISTS revoked_at TIMESTAMP WITH TIME ZONE';
+        EXECUTE 'ALTER TABLE public.scanner_agents ADD COLUMN IF NOT EXISTS metadata JSONB DEFAULT ''{}''::jsonb';
+        EXECUTE 'ALTER TABLE public.scanner_agents ADD COLUMN IF NOT EXISTS created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()';
+        EXECUTE 'ALTER TABLE public.scanner_agents ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()';
+    END IF;
+
+    IF to_regclass('public.agent_heartbeats') IS NOT NULL THEN
+        EXECUTE 'ALTER TABLE public.agent_heartbeats ADD COLUMN IF NOT EXISTS agent_id UUID';
+        EXECUTE 'ALTER TABLE public.agent_heartbeats ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT ''online''';
+        EXECUTE 'ALTER TABLE public.agent_heartbeats ADD COLUMN IF NOT EXISTS telemetry JSONB DEFAULT ''{}''::jsonb';
+        EXECUTE 'ALTER TABLE public.agent_heartbeats ADD COLUMN IF NOT EXISTS ip_address INET';
+        EXECUTE 'ALTER TABLE public.agent_heartbeats ADD COLUMN IF NOT EXISTS user_agent TEXT';
+        EXECUTE 'ALTER TABLE public.agent_heartbeats ADD COLUMN IF NOT EXISTS observed_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()';
+        EXECUTE 'ALTER TABLE public.agent_heartbeats ADD COLUMN IF NOT EXISTS created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()';
+    END IF;
+
+    IF to_regclass('public.connector_accounts') IS NOT NULL THEN
+        EXECUTE 'ALTER TABLE public.connector_accounts ADD COLUMN IF NOT EXISTS provider VARCHAR(100)';
+        EXECUTE 'ALTER TABLE public.connector_accounts ADD COLUMN IF NOT EXISTS provider_account_id VARCHAR(255)';
+        EXECUTE 'ALTER TABLE public.connector_accounts ADD COLUMN IF NOT EXISTS display_name VARCHAR(255)';
+        EXECUTE 'ALTER TABLE public.connector_accounts ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT ''connected''';
+        EXECUTE 'ALTER TABLE public.connector_accounts ADD COLUMN IF NOT EXISTS scopes TEXT[] DEFAULT ''{}''';
+        EXECUTE 'ALTER TABLE public.connector_accounts ADD COLUMN IF NOT EXISTS token_ref TEXT';
+        EXECUTE 'ALTER TABLE public.connector_accounts ADD COLUMN IF NOT EXISTS capabilities JSONB DEFAULT ''{}''::jsonb';
+        EXECUTE 'ALTER TABLE public.connector_accounts ADD COLUMN IF NOT EXISTS policy JSONB DEFAULT ''{}''::jsonb';
+        EXECUTE 'ALTER TABLE public.connector_accounts ADD COLUMN IF NOT EXISTS last_sync_at TIMESTAMP WITH TIME ZONE';
+        EXECUTE 'ALTER TABLE public.connector_accounts ADD COLUMN IF NOT EXISTS metadata JSONB DEFAULT ''{}''::jsonb';
+        EXECUTE 'ALTER TABLE public.connector_accounts ADD COLUMN IF NOT EXISTS created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()';
+        EXECUTE 'ALTER TABLE public.connector_accounts ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()';
+    END IF;
+
+    IF to_regclass('public.scanner_evidence') IS NOT NULL THEN
+        EXECUTE 'ALTER TABLE public.scanner_evidence ADD COLUMN IF NOT EXISTS agent_id UUID';
+        EXECUTE 'ALTER TABLE public.scanner_evidence ADD COLUMN IF NOT EXISTS connector_account_id UUID';
+        EXECUTE 'ALTER TABLE public.scanner_evidence ADD COLUMN IF NOT EXISTS source_type VARCHAR(50)';
+        EXECUTE 'ALTER TABLE public.scanner_evidence ADD COLUMN IF NOT EXISTS evidence_type VARCHAR(100)';
+        EXECUTE 'ALTER TABLE public.scanner_evidence ADD COLUMN IF NOT EXISTS asset_name VARCHAR(255)';
+        EXECUTE 'ALTER TABLE public.scanner_evidence ADD COLUMN IF NOT EXISTS asset_type VARCHAR(100)';
+        EXECUTE 'ALTER TABLE public.scanner_evidence ADD COLUMN IF NOT EXISTS target TEXT';
+        EXECUTE 'ALTER TABLE public.scanner_evidence ADD COLUMN IF NOT EXISTS host VARCHAR(255)';
+        EXECUTE 'ALTER TABLE public.scanner_evidence ADD COLUMN IF NOT EXISTS port INTEGER';
+        EXECUTE 'ALTER TABLE public.scanner_evidence ADD COLUMN IF NOT EXISTS protocol VARCHAR(50)';
+        EXECUTE 'ALTER TABLE public.scanner_evidence ADD COLUMN IF NOT EXISTS observed_algorithm VARCHAR(100)';
+        EXECUTE 'ALTER TABLE public.scanner_evidence ADD COLUMN IF NOT EXISTS key_size INTEGER';
+        EXECUTE 'ALTER TABLE public.scanner_evidence ADD COLUMN IF NOT EXISTS certificate_fingerprint TEXT';
+        EXECUTE 'ALTER TABLE public.scanner_evidence ADD COLUMN IF NOT EXISTS file_path TEXT';
+        EXECUTE 'ALTER TABLE public.scanner_evidence ADD COLUMN IF NOT EXISTS package_name VARCHAR(255)';
+        EXECUTE 'ALTER TABLE public.scanner_evidence ADD COLUMN IF NOT EXISTS package_version VARCHAR(100)';
+        EXECUTE 'ALTER TABLE public.scanner_evidence ADD COLUMN IF NOT EXISTS confidence VARCHAR(20) DEFAULT ''medium''';
+        EXECUTE 'ALTER TABLE public.scanner_evidence ADD COLUMN IF NOT EXISTS raw_evidence JSONB DEFAULT ''{}''::jsonb';
+        EXECUTE 'ALTER TABLE public.scanner_evidence ADD COLUMN IF NOT EXISTS processed_at TIMESTAMP WITH TIME ZONE';
+        EXECUTE 'ALTER TABLE public.scanner_evidence ADD COLUMN IF NOT EXISTS observed_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()';
+        EXECUTE 'ALTER TABLE public.scanner_evidence ADD COLUMN IF NOT EXISTS created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()';
+    END IF;
+
+    IF to_regclass('public.scanner_alerts') IS NOT NULL THEN
+        EXECUTE 'ALTER TABLE public.scanner_alerts ADD COLUMN IF NOT EXISTS agent_id UUID';
+        EXECUTE 'ALTER TABLE public.scanner_alerts ADD COLUMN IF NOT EXISTS connector_account_id UUID';
+        EXECUTE 'ALTER TABLE public.scanner_alerts ADD COLUMN IF NOT EXISTS evidence_id UUID';
+        EXECUTE 'ALTER TABLE public.scanner_alerts ADD COLUMN IF NOT EXISTS severity VARCHAR(20)';
+        EXECUTE 'ALTER TABLE public.scanner_alerts ADD COLUMN IF NOT EXISTS category VARCHAR(100)';
+        EXECUTE 'ALTER TABLE public.scanner_alerts ADD COLUMN IF NOT EXISTS title VARCHAR(255)';
+        EXECUTE 'ALTER TABLE public.scanner_alerts ADD COLUMN IF NOT EXISTS message TEXT';
+        EXECUTE 'ALTER TABLE public.scanner_alerts ADD COLUMN IF NOT EXISTS recommendation TEXT';
+        EXECUTE 'ALTER TABLE public.scanner_alerts ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT ''open''';
+        EXECUTE 'ALTER TABLE public.scanner_alerts ADD COLUMN IF NOT EXISTS metadata JSONB DEFAULT ''{}''::jsonb';
+        EXECUTE 'ALTER TABLE public.scanner_alerts ADD COLUMN IF NOT EXISTS acknowledged_at TIMESTAMP WITH TIME ZONE';
+        EXECUTE 'ALTER TABLE public.scanner_alerts ADD COLUMN IF NOT EXISTS resolved_at TIMESTAMP WITH TIME ZONE';
+        EXECUTE 'ALTER TABLE public.scanner_alerts ADD COLUMN IF NOT EXISTS created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()';
+        EXECUTE 'ALTER TABLE public.scanner_alerts ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()';
+    END IF;
+
+    IF to_regclass('public.scanner_agent_policies') IS NOT NULL THEN
+        EXECUTE 'ALTER TABLE public.scanner_agent_policies ADD COLUMN IF NOT EXISTS agent_id UUID';
+        EXECUTE 'ALTER TABLE public.scanner_agent_policies ADD COLUMN IF NOT EXISTS name VARCHAR(255) DEFAULT ''Default scanner policy''';
+        EXECUTE 'ALTER TABLE public.scanner_agent_policies ADD COLUMN IF NOT EXISTS enabled BOOLEAN DEFAULT TRUE';
+        EXECUTE 'ALTER TABLE public.scanner_agent_policies ADD COLUMN IF NOT EXISTS interval_seconds INTEGER DEFAULT 300';
+        EXECUTE 'ALTER TABLE public.scanner_agent_policies ADD COLUMN IF NOT EXISTS allowed_targets JSONB DEFAULT ''[]''::jsonb';
+        EXECUTE 'ALTER TABLE public.scanner_agent_policies ADD COLUMN IF NOT EXISTS allowed_paths JSONB DEFAULT ''[]''::jsonb';
+        EXECUTE 'ALTER TABLE public.scanner_agent_policies ADD COLUMN IF NOT EXISTS scan_types TEXT[] DEFAULT ARRAY[''tls'', ''ssh'', ''packages'', ''configs'']';
+        EXECUTE 'ALTER TABLE public.scanner_agent_policies ADD COLUMN IF NOT EXISTS alert_threshold VARCHAR(20) DEFAULT ''moderate''';
+        EXECUTE 'ALTER TABLE public.scanner_agent_policies ADD COLUMN IF NOT EXISTS metadata JSONB DEFAULT ''{}''::jsonb';
+        EXECUTE 'ALTER TABLE public.scanner_agent_policies ADD COLUMN IF NOT EXISTS created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()';
+        EXECUTE 'ALTER TABLE public.scanner_agent_policies ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()';
+    END IF;
+END;
+$$;
+
 -- ============================================================
 -- 1. ASSETS
 -- ============================================================
@@ -27,7 +253,8 @@ ALTER TABLE assets ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS assets_user_isolation ON assets;
 CREATE POLICY assets_user_isolation ON assets
     FOR ALL
-    USING (user_id = auth.uid());
+    USING (user_id = auth.uid())
+    WITH CHECK (user_id = auth.uid());
 CREATE INDEX IF NOT EXISTS idx_assets_user_id ON assets(user_id);
 CREATE INDEX IF NOT EXISTS idx_assets_type ON assets(type);
 CREATE INDEX IF NOT EXISTS idx_assets_status ON assets(status);
@@ -49,7 +276,8 @@ ALTER TABLE asset_relationships ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS asset_relationships_user_isolation ON asset_relationships;
 CREATE POLICY asset_relationships_user_isolation ON asset_relationships
     FOR ALL
-    USING (user_id = auth.uid());
+    USING (user_id = auth.uid())
+    WITH CHECK (user_id = auth.uid());
 CREATE INDEX IF NOT EXISTS idx_asset_rel_user ON asset_relationships(user_id);
 CREATE INDEX IF NOT EXISTS idx_asset_rel_source ON asset_relationships(source_asset_id);
 CREATE INDEX IF NOT EXISTS idx_asset_rel_target ON asset_relationships(target_asset_id);
@@ -78,7 +306,8 @@ ALTER TABLE crypto_inventory ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS crypto_inventory_user_isolation ON crypto_inventory;
 CREATE POLICY crypto_inventory_user_isolation ON crypto_inventory
     FOR ALL
-    USING (user_id = auth.uid());
+    USING (user_id = auth.uid())
+    WITH CHECK (user_id = auth.uid());
 CREATE INDEX IF NOT EXISTS idx_ci_user ON crypto_inventory(user_id);
 CREATE INDEX IF NOT EXISTS idx_ci_asset ON crypto_inventory(asset_id);
 CREATE INDEX IF NOT EXISTS idx_ci_vulnerable ON crypto_inventory(is_vulnerable);
@@ -103,7 +332,8 @@ ALTER TABLE crypto_exposures ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS crypto_exposures_user_isolation ON crypto_exposures;
 CREATE POLICY crypto_exposures_user_isolation ON crypto_exposures
     FOR ALL
-    USING (user_id = auth.uid());
+    USING (user_id = auth.uid())
+    WITH CHECK (user_id = auth.uid());
 CREATE INDEX IF NOT EXISTS idx_ce_user ON crypto_exposures(user_id);
 CREATE INDEX IF NOT EXISTS idx_ce_asset ON crypto_exposures(asset_id);
 CREATE INDEX IF NOT EXISTS idx_ce_severity ON crypto_exposures(severity);
@@ -130,7 +360,8 @@ ALTER TABLE vulnerabilities ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS vulnerabilities_user_isolation ON vulnerabilities;
 CREATE POLICY vulnerabilities_user_isolation ON vulnerabilities
     FOR ALL
-    USING (user_id = auth.uid());
+    USING (user_id = auth.uid())
+    WITH CHECK (user_id = auth.uid());
 CREATE INDEX IF NOT EXISTS idx_vuln_user ON vulnerabilities(user_id);
 CREATE INDEX IF NOT EXISTS idx_vuln_status ON vulnerabilities(status);
 CREATE INDEX IF NOT EXISTS idx_vuln_severity ON vulnerabilities(severity);
@@ -162,7 +393,8 @@ ALTER TABLE certificates ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS certificates_user_isolation ON certificates;
 CREATE POLICY certificates_user_isolation ON certificates
     FOR ALL
-    USING (user_id = auth.uid());
+    USING (user_id = auth.uid())
+    WITH CHECK (user_id = auth.uid());
 CREATE INDEX IF NOT EXISTS idx_cert_user ON certificates(user_id);
 CREATE INDEX IF NOT EXISTS idx_cert_expiry ON certificates(not_after);
 
@@ -190,7 +422,8 @@ ALTER TABLE migration_jobs ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS migration_jobs_user_isolation ON migration_jobs;
 CREATE POLICY migration_jobs_user_isolation ON migration_jobs
     FOR ALL
-    USING (user_id = auth.uid());
+    USING (user_id = auth.uid())
+    WITH CHECK (user_id = auth.uid());
 CREATE INDEX IF NOT EXISTS idx_mj_user ON migration_jobs(user_id);
 CREATE INDEX IF NOT EXISTS idx_mj_status ON migration_jobs(status);
 
@@ -212,7 +445,8 @@ ALTER TABLE migration_events ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS migration_events_user_isolation ON migration_events;
 CREATE POLICY migration_events_user_isolation ON migration_events
     FOR ALL
-    USING (user_id = auth.uid());
+    USING (user_id = auth.uid())
+    WITH CHECK (user_id = auth.uid());
 CREATE INDEX IF NOT EXISTS idx_me_user ON migration_events(user_id);
 CREATE INDEX IF NOT EXISTS idx_me_migration ON migration_events(migration_id);
 
@@ -239,7 +473,8 @@ ALTER TABLE pqc_scan_sessions ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS pqc_scan_sessions_user_isolation ON pqc_scan_sessions;
 CREATE POLICY pqc_scan_sessions_user_isolation ON pqc_scan_sessions
     FOR ALL
-    USING (user_id = auth.uid());
+    USING (user_id = auth.uid())
+    WITH CHECK (user_id = auth.uid());
 CREATE INDEX IF NOT EXISTS idx_pss_user ON pqc_scan_sessions(user_id);
 CREATE INDEX IF NOT EXISTS idx_pss_status ON pqc_scan_sessions(status);
 
@@ -264,7 +499,8 @@ ALTER TABLE pqc_scan_results ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS pqc_scan_results_user_isolation ON pqc_scan_results;
 CREATE POLICY pqc_scan_results_user_isolation ON pqc_scan_results
     FOR ALL
-    USING (user_id = auth.uid());
+    USING (user_id = auth.uid())
+    WITH CHECK (user_id = auth.uid());
 CREATE INDEX IF NOT EXISTS idx_psr_user ON pqc_scan_results(user_id);
 CREATE INDEX IF NOT EXISTS idx_psr_scan ON pqc_scan_results(scan_session_id);
 
@@ -288,7 +524,8 @@ ALTER TABLE vault_files ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS vault_files_user_isolation ON vault_files;
 CREATE POLICY vault_files_user_isolation ON vault_files
     FOR ALL
-    USING (user_id = auth.uid());
+    USING (user_id = auth.uid())
+    WITH CHECK (user_id = auth.uid());
 CREATE INDEX IF NOT EXISTS idx_vf_user ON vault_files(user_id);
 
 -- ============================================================
@@ -310,7 +547,8 @@ ALTER TABLE vault_audit_logs ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS vault_audit_logs_user_isolation ON vault_audit_logs;
 CREATE POLICY vault_audit_logs_user_isolation ON vault_audit_logs
     FOR ALL
-    USING (user_id = auth.uid());
+    USING (user_id = auth.uid())
+    WITH CHECK (user_id = auth.uid());
 CREATE INDEX IF NOT EXISTS idx_val_user ON vault_audit_logs(user_id);
 CREATE INDEX IF NOT EXISTS idx_val_event ON vault_audit_logs(event_type);
 
@@ -332,7 +570,8 @@ ALTER TABLE qrng_events ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS qrng_events_user_isolation ON qrng_events;
 CREATE POLICY qrng_events_user_isolation ON qrng_events
     FOR ALL
-    USING (user_id = auth.uid());
+    USING (user_id = auth.uid())
+    WITH CHECK (user_id = auth.uid());
 CREATE INDEX IF NOT EXISTS idx_qe_user ON qrng_events(user_id);
 
 -- ============================================================
@@ -356,7 +595,8 @@ ALTER TABLE security_events ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS security_events_user_isolation ON security_events;
 CREATE POLICY security_events_user_isolation ON security_events
     FOR ALL
-    USING (user_id = auth.uid());
+    USING (user_id = auth.uid())
+    WITH CHECK (user_id = auth.uid());
 CREATE INDEX IF NOT EXISTS idx_se_user ON security_events(user_id);
 CREATE INDEX IF NOT EXISTS idx_se_created ON security_events(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_se_severity ON security_events(severity);
@@ -381,7 +621,8 @@ ALTER TABLE compliance_evidence ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS compliance_evidence_user_isolation ON compliance_evidence;
 CREATE POLICY compliance_evidence_user_isolation ON compliance_evidence
     FOR ALL
-    USING (user_id = auth.uid());
+    USING (user_id = auth.uid())
+    WITH CHECK (user_id = auth.uid());
 CREATE INDEX IF NOT EXISTS idx_cev_user ON compliance_evidence(user_id);
 
 -- ============================================================
@@ -403,7 +644,8 @@ ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS audit_logs_user_isolation ON audit_logs;
 CREATE POLICY audit_logs_user_isolation ON audit_logs
     FOR ALL
-    USING (user_id = auth.uid());
+    USING (user_id = auth.uid())
+    WITH CHECK (user_id = auth.uid());
 CREATE INDEX IF NOT EXISTS idx_al_user ON audit_logs(user_id);
 CREATE INDEX IF NOT EXISTS idx_al_created ON audit_logs(created_at DESC);
 
@@ -425,7 +667,8 @@ ALTER TABLE user_devices ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS user_devices_user_isolation ON user_devices;
 CREATE POLICY user_devices_user_isolation ON user_devices
     FOR ALL
-    USING (user_id = auth.uid());
+    USING (user_id = auth.uid())
+    WITH CHECK (user_id = auth.uid());
 CREATE INDEX IF NOT EXISTS idx_ud_user ON user_devices(user_id);
 
 -- ============================================================
@@ -446,8 +689,193 @@ ALTER TABLE auth_events ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS auth_events_user_isolation ON auth_events;
 CREATE POLICY auth_events_user_isolation ON auth_events
     FOR ALL
-    USING (user_id = auth.uid());
+    USING (user_id = auth.uid())
+    WITH CHECK (user_id = auth.uid());
 CREATE INDEX IF NOT EXISTS idx_ae_user ON auth_events(user_id);
+
+-- ============================================================
+-- 19. SCANNER AGENTS
+-- ============================================================
+CREATE TABLE IF NOT EXISTS scanner_agents (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    token_hash TEXT NOT NULL,
+    status VARCHAR(50) NOT NULL DEFAULT 'active', -- active, degraded, offline, revoked
+    hostname VARCHAR(255),
+    platform VARCHAR(100),
+    version VARCHAR(100),
+    capabilities JSONB DEFAULT '{}',
+    policy JSONB DEFAULT '{}',
+    last_seen_at TIMESTAMP WITH TIME ZONE,
+    revoked_at TIMESTAMP WITH TIME ZONE,
+    metadata JSONB DEFAULT '{}',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+ALTER TABLE scanner_agents ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS scanner_agents_user_isolation ON scanner_agents;
+CREATE POLICY scanner_agents_user_isolation ON scanner_agents
+    FOR ALL
+    USING (user_id = auth.uid())
+    WITH CHECK (user_id = auth.uid());
+CREATE INDEX IF NOT EXISTS idx_scanner_agents_user ON scanner_agents(user_id);
+CREATE INDEX IF NOT EXISTS idx_scanner_agents_status ON scanner_agents(status);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_scanner_agents_token_hash ON scanner_agents(token_hash);
+
+-- ============================================================
+-- 20. AGENT HEARTBEATS
+-- ============================================================
+CREATE TABLE IF NOT EXISTS agent_heartbeats (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL,
+    agent_id UUID REFERENCES scanner_agents(id) ON DELETE CASCADE,
+    status VARCHAR(50) NOT NULL DEFAULT 'online',
+    telemetry JSONB DEFAULT '{}',
+    ip_address INET,
+    user_agent TEXT,
+    observed_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+ALTER TABLE agent_heartbeats ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS agent_heartbeats_user_isolation ON agent_heartbeats;
+CREATE POLICY agent_heartbeats_user_isolation ON agent_heartbeats
+    FOR ALL
+    USING (user_id = auth.uid())
+    WITH CHECK (user_id = auth.uid());
+CREATE INDEX IF NOT EXISTS idx_agent_heartbeats_user ON agent_heartbeats(user_id);
+CREATE INDEX IF NOT EXISTS idx_agent_heartbeats_agent ON agent_heartbeats(agent_id, observed_at DESC);
+
+-- ============================================================
+-- 21. CONNECTOR ACCOUNTS
+-- ============================================================
+CREATE TABLE IF NOT EXISTS connector_accounts (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL,
+    provider VARCHAR(100) NOT NULL,
+    provider_account_id VARCHAR(255),
+    display_name VARCHAR(255),
+    status VARCHAR(50) NOT NULL DEFAULT 'connected', -- connected, disconnected, expired, error, revoked
+    scopes TEXT[] DEFAULT '{}',
+    token_ref TEXT,
+    capabilities JSONB DEFAULT '{}',
+    policy JSONB DEFAULT '{}',
+    last_sync_at TIMESTAMP WITH TIME ZONE,
+    metadata JSONB DEFAULT '{}',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+ALTER TABLE connector_accounts ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS connector_accounts_user_isolation ON connector_accounts;
+CREATE POLICY connector_accounts_user_isolation ON connector_accounts
+    FOR ALL
+    USING (user_id = auth.uid())
+    WITH CHECK (user_id = auth.uid());
+CREATE INDEX IF NOT EXISTS idx_connector_accounts_user ON connector_accounts(user_id);
+CREATE INDEX IF NOT EXISTS idx_connector_accounts_provider ON connector_accounts(user_id, provider);
+
+-- ============================================================
+-- 22. SCANNER EVIDENCE
+-- ============================================================
+CREATE TABLE IF NOT EXISTS scanner_evidence (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL,
+    agent_id UUID REFERENCES scanner_agents(id) ON DELETE SET NULL,
+    connector_account_id UUID REFERENCES connector_accounts(id) ON DELETE SET NULL,
+    source_type VARCHAR(50) NOT NULL, -- local-agent, connector, scanner-api
+    evidence_type VARCHAR(100) NOT NULL, -- tls-certificate, ssh-metadata, package-manifest, config-reference
+    asset_name VARCHAR(255) NOT NULL,
+    asset_type VARCHAR(100),
+    target TEXT,
+    host VARCHAR(255),
+    port INTEGER,
+    protocol VARCHAR(50),
+    observed_algorithm VARCHAR(100),
+    key_size INTEGER,
+    certificate_fingerprint TEXT,
+    file_path TEXT,
+    package_name VARCHAR(255),
+    package_version VARCHAR(100),
+    confidence VARCHAR(20) DEFAULT 'medium',
+    raw_evidence JSONB DEFAULT '{}',
+    processed_at TIMESTAMP WITH TIME ZONE,
+    observed_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+ALTER TABLE scanner_evidence ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS scanner_evidence_user_isolation ON scanner_evidence;
+CREATE POLICY scanner_evidence_user_isolation ON scanner_evidence
+    FOR ALL
+    USING (user_id = auth.uid())
+    WITH CHECK (user_id = auth.uid());
+CREATE INDEX IF NOT EXISTS idx_scanner_evidence_user ON scanner_evidence(user_id);
+CREATE INDEX IF NOT EXISTS idx_scanner_evidence_agent ON scanner_evidence(agent_id, observed_at DESC);
+CREATE INDEX IF NOT EXISTS idx_scanner_evidence_algorithm ON scanner_evidence(observed_algorithm);
+CREATE INDEX IF NOT EXISTS idx_scanner_evidence_type ON scanner_evidence(evidence_type);
+
+-- ============================================================
+-- 23. SCANNER ALERTS
+-- ============================================================
+CREATE TABLE IF NOT EXISTS scanner_alerts (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL,
+    agent_id UUID REFERENCES scanner_agents(id) ON DELETE SET NULL,
+    connector_account_id UUID REFERENCES connector_accounts(id) ON DELETE SET NULL,
+    evidence_id UUID REFERENCES scanner_evidence(id) ON DELETE SET NULL,
+    severity VARCHAR(20) NOT NULL, -- critical, high, moderate, low, safe
+    category VARCHAR(100) NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    message TEXT NOT NULL,
+    recommendation TEXT,
+    status VARCHAR(50) DEFAULT 'open', -- open, acknowledged, resolved, suppressed
+    metadata JSONB DEFAULT '{}',
+    acknowledged_at TIMESTAMP WITH TIME ZONE,
+    resolved_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+ALTER TABLE scanner_alerts ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS scanner_alerts_user_isolation ON scanner_alerts;
+CREATE POLICY scanner_alerts_user_isolation ON scanner_alerts
+    FOR ALL
+    USING (user_id = auth.uid())
+    WITH CHECK (user_id = auth.uid());
+CREATE INDEX IF NOT EXISTS idx_scanner_alerts_user ON scanner_alerts(user_id);
+CREATE INDEX IF NOT EXISTS idx_scanner_alerts_status ON scanner_alerts(user_id, status);
+CREATE INDEX IF NOT EXISTS idx_scanner_alerts_severity ON scanner_alerts(severity);
+
+-- ============================================================
+-- 24. SCANNER AGENT POLICIES
+-- ============================================================
+CREATE TABLE IF NOT EXISTS scanner_agent_policies (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL,
+    agent_id UUID REFERENCES scanner_agents(id) ON DELETE CASCADE,
+    name VARCHAR(255) NOT NULL DEFAULT 'Default scanner policy',
+    enabled BOOLEAN DEFAULT TRUE,
+    interval_seconds INTEGER DEFAULT 300,
+    allowed_targets JSONB DEFAULT '[]',
+    allowed_paths JSONB DEFAULT '[]',
+    scan_types TEXT[] DEFAULT ARRAY['tls', 'ssh', 'packages', 'configs'],
+    alert_threshold VARCHAR(20) DEFAULT 'moderate',
+    metadata JSONB DEFAULT '{}',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+ALTER TABLE scanner_agent_policies ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS scanner_agent_policies_user_isolation ON scanner_agent_policies;
+CREATE POLICY scanner_agent_policies_user_isolation ON scanner_agent_policies
+    FOR ALL
+    USING (user_id = auth.uid())
+    WITH CHECK (user_id = auth.uid());
+CREATE INDEX IF NOT EXISTS idx_scanner_agent_policies_user ON scanner_agent_policies(user_id);
+CREATE INDEX IF NOT EXISTS idx_scanner_agent_policies_agent ON scanner_agent_policies(agent_id);
 
 -- ============================================================
 -- RPC FUNCTIONS
@@ -630,14 +1058,18 @@ DECLARE
         'vulnerabilities', 'certificates', 'migration_jobs', 'migration_events',
         'pqc_scan_sessions', 'pqc_scan_results', 'vault_files', 'vault_audit_logs',
         'qrng_events', 'security_events', 'compliance_evidence', 'audit_logs',
-        'user_devices', 'auth_events'
+        'user_devices', 'auth_events', 'scanner_agents', 'agent_heartbeats',
+        'connector_accounts', 'scanner_evidence', 'scanner_alerts',
+        'scanner_agent_policies'
     ];
 BEGIN
     FOREACH tbl IN ARRAY tables LOOP
-        EXECUTE format('ALTER PUBLICATION supabase_realtime ADD TABLE %I', tbl);
-    EXCEPTION WHEN OTHERS THEN
-        -- Table may already be in publication, ignore
-        NULL;
+        BEGIN
+            EXECUTE format('ALTER PUBLICATION supabase_realtime ADD TABLE public.%I', tbl);
+        EXCEPTION WHEN OTHERS THEN
+            -- Table may already be in publication, or realtime may be unavailable.
+            NULL;
+        END;
     END LOOP;
 END;
 $$;

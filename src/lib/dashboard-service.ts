@@ -51,54 +51,71 @@ export interface SecurityEvent {
   createdAt: string;
 }
 
+async function apiRequest<T>(path: string): Promise<T> {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  if (!session?.access_token) {
+    throw new Error('Not authenticated');
+  }
+
+  const response = await fetch(path, {
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${session.access_token}`,
+    },
+  });
+
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(payload?.error?.message || `Request failed with HTTP ${response.status}`);
+  }
+  return payload.data as T;
+}
+
+const EMPTY_SUMMARY: DashboardSummary = {
+  quantumRiskScore: 0,
+  riskBand: 'Unknown',
+  vulnerableAssetsCount: 0,
+  newVulnerableAssets: 0,
+  totalCbomItems: 0,
+  activeMigrations: 0,
+  failedMigrations: 0,
+  criticalExposures: 0,
+  highExposures: 0,
+  unresolvedVulns: 0,
+  expiringCerts: 0,
+  totalAssets: 0,
+  lastScanAt: null,
+  monitoringStatus: 'offline',
+};
+
 export const dashboardService = {
   async getSummary(): Promise<DashboardSummary> {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('Not authenticated');
-
-    const { data, error } = await supabase.rpc('get_dashboard_summary', { p_user_id: user.id });
-    if (error) throw error;
-    
-    // Fallback if RPC fails or returns empty
-    return data || {
-      quantumRiskScore: 0,
-      riskBand: 'Unknown',
-      vulnerableAssetsCount: 0,
-      newVulnerableAssets: 0,
-      totalCbomItems: 0,
-      activeMigrations: 0,
-      failedMigrations: 0,
-      criticalExposures: 0,
-      highExposures: 0,
-      unresolvedVulns: 0,
-      expiringCerts: 0,
-      totalAssets: 0,
-      lastScanAt: null,
-      monitoringStatus: 'offline'
-    };
+    return apiRequest<DashboardSummary>('/api/v1/dashboard/summary').catch((error) => {
+      console.error('Dashboard summary API error:', error);
+      return EMPTY_SUMMARY;
+    });
   },
 
   async getExposureMap(): Promise<ExposureMapData> {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('Not authenticated');
-
-    const { data, error } = await supabase.rpc('get_exposure_map', { p_user_id: user.id });
-    if (error) throw error;
-
-    return data || { nodes: [], edges: [] };
+    return apiRequest<ExposureMapData>('/api/v1/dashboard/exposure-map').catch((error) => {
+      console.error('Dashboard exposure API error:', error);
+      return { nodes: [], edges: [] };
+    });
   },
 
   async getRecentEvents(limit = 50): Promise<SecurityEvent[]> {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('Not authenticated');
-
-    const { data, error } = await supabase.rpc('get_recent_security_events', { 
-      p_user_id: user.id,
-      p_limit: limit
+    const data = await apiRequest<{ events: Array<SecurityEvent & { timestamp?: string }> }>(`/api/v1/dashboard/events?limit=${limit}`).catch((error) => {
+      console.error('Dashboard events API error:', error);
+      return { events: [] };
     });
-    if (error) throw error;
 
-    return data || [];
+    return (data.events || []).map((event) => ({
+      ...event,
+      createdAt: event.createdAt || event.timestamp || new Date().toISOString(),
+    }));
   },
 
   subscribeToEvents(callback: (event: SecurityEvent) => void, onStatusChange?: (status: string) => void) {

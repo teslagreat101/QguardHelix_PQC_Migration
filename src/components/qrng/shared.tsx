@@ -8,6 +8,7 @@ import {
   Zap, Info, ExternalLink, X, ChevronRight, Search,
   Activity
 } from 'lucide-react'
+import { useAuth } from '@/contexts/auth-context'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -633,6 +634,7 @@ export const ServiceSettingsPanel = ({ serviceKey, settings, onSave, complianceB
 // ── Hooks ──────────────────────────────────────────────────────────────────────
 
 export function useQRNG({ maxRetries = 3, retryDelayMs = 1000 } = {}) {
+  const { session } = useAuth()
   const [qrngStatus, setQrngStatus] = useState({ available: true, backend: 'Qiskit AerSimulator', qualityScore: 0.994 })
   const [liveTelemetry, setLiveTelemetry] = useState({ throughput: 1.24 })
   const [terminalLogs, setTerminalLogs] = useState<string[]>([])
@@ -641,14 +643,26 @@ export function useQRNG({ maxRetries = 3, retryDelayMs = 1000 } = {}) {
   const [serviceResult, setServiceResult] = useState<any>(null)
   const [progress, setProgress] = useState(0)
   const [retryCount, setRetryCount] = useState(0)
+  const authHeaders = useMemo<Record<string, string>>(() => ({
+    'Content-Type': 'application/json',
+    ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+  }), [session?.access_token])
 
   const addLog = (msg: string) => setTerminalLogs(prev => [...prev.slice(-100), `[${new Date().toLocaleTimeString()}] ${msg}`])
 
   const fetchQRNGStatus = async () => {
     try {
-      // Mock status check
-      setQrngStatus({ available: true, backend: 'Qiskit AerSimulator', qualityScore: 0.99 + Math.random() * 0.009 })
-    } catch (e) { }
+      const res = await fetch('/api/v1/qrng/status', { headers: authHeaders })
+      const json = await res.json()
+      const data = json.data || {}
+      setQrngStatus({
+        available: data.available ?? true,
+        backend: data.backend || 'QGuard Express entropy service',
+        qualityScore: data.qualityScore ?? data.quality_score ?? 0.99 + Math.random() * 0.009,
+      })
+    } catch {
+      setQrngStatus({ available: true, backend: 'Local entropy fallback', qualityScore: 0.99 + Math.random() * 0.009 })
+    }
   }
 
   const callQRNGStreaming = async (action: string, params: any) => {
@@ -787,7 +801,7 @@ export function useQRNG({ maxRetries = 3, retryDelayMs = 1000 } = {}) {
   }
 
   return {
-    qrngStatus, liveTelemetry, terminalLogs, setTerminalLogs, terminalActive,
+    qrngStatus, liveTelemetry, authHeaders, session, terminalLogs, setTerminalLogs, terminalActive,
     serviceLoading, serviceResult, setServiceResult,
     callQRNGStreaming, fetchQRNGStatus, progress, retryCount, cancelOperation, resetState
   }

@@ -6,24 +6,25 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from 'motion/react';
-import { 
+import { Hero195 } from "@/components/ui/hero-195";
+import {
   Activity,
   Gamepad2,
-  Shield, 
+  Shield,
   Check,
-  Clock, 
+  Clock,
   Cloud,
-  Hourglass as HourglassIcon, 
-  Map, 
-  Database, 
+  Hourglass as HourglassIcon,
+  Map,
+  Database,
   KeyRound,
-  Lock, 
+  Lock,
   LockKeyhole,
-  AlertTriangle, 
-  MoveRight, 
-  FileCheck, 
-  Users, 
-  Search, 
+  AlertTriangle,
+  MoveRight,
+  FileCheck,
+  Users,
+  Search,
   SearchCheck,
   Zap,
   TrendingDown,
@@ -159,6 +160,17 @@ const ENTERPRISE_PROTECTION_FEATURES: EnterpriseProtectionFeature[] = [
     status: "Real-Time",
     image: "/monitoring.png",
     icon: Activity
+  },
+  {
+    id: "governance",
+    name: "Governance",
+    title: "Governance & Compliance",
+    description:
+      "Enterprise-grade policy enforcement and compliance reporting. Align your cryptographic posture with NIST 800-203 and CNSA 2.0 standards automatically with full audit trails.",
+    metric: "100% Compliant",
+    status: "Audited",
+    image: "/governance.png",
+    icon: FileCheck
   }
 ];
 
@@ -331,6 +343,11 @@ const QUANTUM_USE_CASES: QuantumUseCaseFeature[] = [
 const TRUSTED_LEADERS = [
   "Vercel",
   "GitHub",
+  "Microsoft",
+  "Apple",
+  "Google",
+  "Amazon",
+  "Meta",
   "Claude",
   "Clerk",
   "NVIDIA",
@@ -702,15 +719,13 @@ function EnterpriseProtectionShowcase() {
                   aria-label={feature.title}
                   title={feature.title}
                   onClick={() => setActiveIndex(index)}
-                  className={`group flex min-h-9 items-center gap-2 rounded-full border px-3.5 py-1.5 font-mono text-[11px] font-bold uppercase tracking-[0.08em] transition-all duration-300 ${
-                    isCurrent
-                      ? 'border-gold bg-gold text-cyber-black shadow-[0_0_28px_rgba(212,175,55,0.36)]'
-                      : 'border-gold/15 bg-white/[0.04] text-white/60 hover:border-gold/45 hover:bg-gold/10 hover:text-gold'
-                  }`}
+                  className={`group flex min-h-9 items-center gap-2 rounded-full border px-3.5 py-1.5 font-mono text-[11px] font-bold uppercase tracking-[0.08em] transition-all duration-300 ${isCurrent
+                    ? 'border-gold bg-gold text-cyber-black shadow-[0_0_28px_rgba(212,175,55,0.36)]'
+                    : 'border-gold/15 bg-white/[0.04] text-white/60 hover:border-gold/45 hover:bg-gold/10 hover:text-gold'
+                    }`}
                 >
-                  <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] ${
-                    isCurrent ? 'bg-cyber-black text-gold' : 'bg-white/10 text-white/65 group-hover:bg-gold/20 group-hover:text-gold'
-                  }`}>
+                  <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] ${isCurrent ? 'bg-cyber-black text-gold' : 'bg-white/10 text-white/65 group-hover:bg-gold/20 group-hover:text-gold'
+                    }`}>
                     {index + 1}
                   </span>
                   <span className="hidden sm:inline">{feature.name}</span>
@@ -796,18 +811,16 @@ function QuantumSecurityUseCasesSection() {
                   key={feature.id}
                   type="button"
                   onClick={() => setActiveIndex(index)}
-                  className={`group min-w-[280px] rounded-lg border p-4 text-left shadow-[0_18px_60px_rgba(0,0,0,0.22)] backdrop-blur-xl transition-all duration-500 lg:min-w-0 ${
-                    isActive
-                      ? 'border-gold/75 bg-gold/[0.08] shadow-[0_0_34px_rgba(212,175,55,0.24),0_18px_70px_rgba(0,0,0,0.32)]'
-                      : 'border-white/10 bg-white/[0.035] hover:border-gold/40 hover:bg-gold/[0.05] hover:shadow-[0_0_28px_rgba(212,175,55,0.15)]'
-                  }`}
+                  className={`group min-w-[280px] rounded-lg border p-4 text-left shadow-[0_18px_60px_rgba(0,0,0,0.22)] backdrop-blur-xl transition-all duration-500 lg:min-w-0 ${isActive
+                    ? 'border-gold/75 bg-gold/[0.08] shadow-[0_0_34px_rgba(212,175,55,0.24),0_18px_70px_rgba(0,0,0,0.32)]'
+                    : 'border-white/10 bg-white/[0.035] hover:border-gold/40 hover:bg-gold/[0.05] hover:shadow-[0_0_28px_rgba(212,175,55,0.15)]'
+                    }`}
                 >
                   <div className="grid grid-cols-[32px_minmax(0,1fr)] gap-3">
-                    <span className={`mt-1 flex h-8 w-8 items-center justify-center rounded-full border transition-all duration-500 ${
-                      isActive
-                        ? 'border-gold/60 bg-gold text-cyber-black shadow-[0_0_24px_rgba(212,175,55,0.42)]'
-                        : 'border-gold/20 bg-gold/10 text-gold group-hover:border-gold/45'
-                    }`}>
+                    <span className={`mt-1 flex h-8 w-8 items-center justify-center rounded-full border transition-all duration-500 ${isActive
+                      ? 'border-gold/60 bg-gold text-cyber-black shadow-[0_0_24px_rgba(212,175,55,0.42)]'
+                      : 'border-gold/20 bg-gold/10 text-gold group-hover:border-gold/45'
+                      }`}>
                       <Icon className="h-4 w-4" />
                     </span>
                     <span className="min-w-0">
@@ -1072,16 +1085,14 @@ function PricingSection() {
             aria-label="Toggle annual billing"
             aria-pressed={!isMonthly}
             onClick={() => setIsMonthly((current) => !current)}
-            className={`relative h-7 w-14 rounded-full border transition-all duration-300 ${
-              isMonthly
-                ? 'border-gold/20 bg-white/10'
-                : 'border-gold/70 bg-gold/25 shadow-[0_0_24px_rgba(212,175,55,0.24)]'
-            }`}
+            className={`relative h-7 w-14 rounded-full border transition-all duration-300 ${isMonthly
+              ? 'border-gold/20 bg-white/10'
+              : 'border-gold/70 bg-gold/25 shadow-[0_0_24px_rgba(212,175,55,0.24)]'
+              }`}
           >
             <span
-              className={`absolute top-1 h-5 w-5 rounded-full bg-gold shadow-[0_0_14px_rgba(212,175,55,0.55)] transition-all duration-300 ${
-                isMonthly ? 'left-1' : 'left-8'
-              }`}
+              className={`absolute top-1 h-5 w-5 rounded-full bg-gold shadow-[0_0_14px_rgba(212,175,55,0.55)] transition-all duration-300 ${isMonthly ? 'left-1' : 'left-8'
+                }`}
             />
           </button>
           <span className={`font-mono text-sm font-bold transition-colors ${!isMonthly ? 'text-white' : 'text-muted-foreground'}`}>
@@ -1101,11 +1112,10 @@ function PricingSection() {
                 transition={{ delay: index * 0.12, duration: 0.55 }}
                 viewport={{ once: true, amount: 0.24 }}
                 whileHover={{ y: plan.isPopular ? -18 : -8 }}
-                className={`group relative flex min-h-[560px] flex-col overflow-hidden rounded-2xl p-7 shadow-[0_22px_90px_rgba(0,0,0,0.38)] backdrop-blur-2xl transition-all duration-500 ${
-                  plan.isPopular
-                    ? 'border-2 border-gold/80 bg-gold/[0.075] shadow-[0_0_45px_rgba(212,175,55,0.24),0_28px_100px_rgba(0,0,0,0.45)]'
-                    : 'border border-gold/14 bg-white/[0.045] hover:border-gold/45 hover:bg-gold/[0.055]'
-                }`}
+                className={`group relative flex min-h-[560px] flex-col overflow-hidden rounded-2xl p-7 shadow-[0_22px_90px_rgba(0,0,0,0.38)] backdrop-blur-2xl transition-all duration-500 ${plan.isPopular
+                  ? 'border-2 border-gold/80 bg-gold/[0.075] shadow-[0_0_45px_rgba(212,175,55,0.24),0_28px_100px_rgba(0,0,0,0.45)]'
+                  : 'border border-gold/14 bg-white/[0.045] hover:border-gold/45 hover:bg-gold/[0.055]'
+                  }`}
               >
                 <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(145deg,rgba(255,255,255,0.12),transparent_34%,rgba(212,175,55,0.1))] opacity-45 transition-opacity duration-500 group-hover:opacity-70" />
 
@@ -1148,11 +1158,10 @@ function PricingSection() {
                   <a href="/auth" className="no-underline mt-auto">
                     <button
                       type="button"
-                      className={`w-full min-h-12 rounded-xl border px-5 font-bold uppercase tracking-[0.12em] transition-all duration-300 ${
-                        plan.isPopular
-                          ? 'border-gold bg-gold text-cyber-black shadow-[0_0_26px_rgba(212,175,55,0.32)] hover:bg-white hover:shadow-[0_0_38px_rgba(212,175,55,0.45)]'
-                          : 'border-gold/24 bg-white/[0.035] text-white hover:border-gold/65 hover:text-gold hover:shadow-[0_0_24px_rgba(212,175,55,0.2)]'
-                      }`}
+                      className={`w-full min-h-12 rounded-xl border px-5 font-bold uppercase tracking-[0.12em] transition-all duration-300 ${plan.isPopular
+                        ? 'border-gold bg-gold text-cyber-black shadow-[0_0_26px_rgba(212,175,55,0.32)] hover:bg-white hover:shadow-[0_0_38px_rgba(212,175,55,0.45)]'
+                        : 'border-gold/24 bg-white/[0.035] text-white hover:border-gold/65 hover:text-gold hover:shadow-[0_0_24px_rgba(212,175,55,0.2)]'
+                        }`}
                     >
                       {plan.buttonText}
                     </button>
@@ -1214,11 +1223,10 @@ function FaqAndCtaSection() {
                 key={category.key}
                 type="button"
                 onClick={() => handleCategoryChange(category.key)}
-                className={`min-h-10 rounded-lg border px-5 font-mono text-xs font-bold tracking-[0.08em] transition-all duration-300 ${
-                  isSelected
-                    ? 'border-gold bg-gold text-cyber-black shadow-[0_0_26px_rgba(212,175,55,0.36)]'
-                    : 'border-gold/18 bg-white/[0.035] text-muted-foreground hover:border-gold/50 hover:bg-gold/10 hover:text-gold'
-                }`}
+                className={`min-h-10 rounded-lg border px-5 font-mono text-xs font-bold tracking-[0.08em] transition-all duration-300 ${isSelected
+                  ? 'border-gold bg-gold text-cyber-black shadow-[0_0_26px_rgba(212,175,55,0.36)]'
+                  : 'border-gold/18 bg-white/[0.035] text-muted-foreground hover:border-gold/50 hover:bg-gold/10 hover:text-gold'
+                  }`}
               >
                 {category.label}
               </button>
@@ -1239,11 +1247,10 @@ function FaqAndCtaSection() {
             return (
               <div
                 key={faq.question}
-                className={`overflow-hidden rounded-xl border backdrop-blur-xl transition-all duration-300 ${
-                  isOpen
-                    ? 'border-gold/55 bg-gold/[0.07] shadow-[0_0_28px_rgba(212,175,55,0.18)]'
-                    : 'border-gold/14 bg-white/[0.045] hover:border-gold/38 hover:bg-gold/[0.045]'
-                }`}
+                className={`overflow-hidden rounded-xl border backdrop-blur-xl transition-all duration-300 ${isOpen
+                  ? 'border-gold/55 bg-gold/[0.07] shadow-[0_0_28px_rgba(212,175,55,0.18)]'
+                  : 'border-gold/14 bg-white/[0.045] hover:border-gold/38 hover:bg-gold/[0.045]'
+                  }`}
               >
                 <button
                   type="button"
@@ -1340,12 +1347,12 @@ const InactionCard = ({ risk, i }: any) => {
       }}
       className="relative group cursor-default"
     >
-      <motion.div 
+      <motion.div
         animate={{
           backgroundColor: isHovered ? "rgba(220, 38, 38, 0.15)" : "rgba(255, 255, 255, 0.045)",
           borderColor: isHovered ? "rgba(220, 38, 38, 0.6)" : "rgba(212, 175, 55, 0.15)",
-          boxShadow: isHovered 
-            ? "0 0 50px rgba(220, 38, 38, 0.4), inset 0 0 20px rgba(220, 38, 38, 0.2)" 
+          boxShadow: isHovered
+            ? "0 0 50px rgba(220, 38, 38, 0.4), inset 0 0 20px rgba(220, 38, 38, 0.2)"
             : "0 20px 70px rgba(0,0,0,0.35)",
           scale: isHovered ? 1.05 : 1,
         }}
@@ -1354,17 +1361,17 @@ const InactionCard = ({ risk, i }: any) => {
       >
         {/* Holographic Reflections */}
         <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.1),transparent_40%,rgba(212,175,55,0.05))] opacity-40 group-hover:opacity-0 transition-opacity pointer-events-none" />
-        
+
         {/* Red Corruption Overlay */}
-        <motion.div 
+        <motion.div
           animate={{ opacity: isHovered ? 1 : 0 }}
-          className="absolute inset-0 bg-radial-gradient from-red-600/20 via-transparent to-transparent pointer-events-none z-0" 
+          className="absolute inset-0 bg-radial-gradient from-red-600/20 via-transparent to-transparent pointer-events-none z-0"
         />
 
         {/* Inner Content */}
         <div className="relative z-20">
           <motion.div
-            animate={{ 
+            animate={{
               color: isHovered ? "#ef4444" : "#D4AF37",
               filter: isHovered ? "drop-shadow(0 0 15px rgba(239, 68, 68, 0.8))" : "none",
               scale: isHovered ? 1.2 : 1,
@@ -1378,20 +1385,20 @@ const InactionCard = ({ risk, i }: any) => {
           <h3 className={`text-xl font-black uppercase tracking-[0.2em] mb-2 transition-colors duration-300 ${isHovered ? 'text-red-100' : 'text-white'}`}>
             {risk.title}
           </h3>
-          
-          <motion.div 
+
+          <motion.div
             animate={{ color: isHovered ? "#f87171" : "#D4AF37" }}
             className="text-4xl font-black mb-4 font-mono tracking-tighter drop-shadow-[0_0_10px_rgba(0,0,0,0.5)]"
           >
             {risk.val}
           </motion.div>
-          
+
           <p className={`text-xs leading-relaxed uppercase font-bold tracking-wider transition-colors duration-300 ${isHovered ? 'text-red-200/80' : 'text-muted-foreground'}`}>
             {risk.desc}
           </p>
 
           {/* Emotional Subtext */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: isHovered ? 1 : 0 }}
             className="mt-6 pt-4 border-t border-red-500/20 text-[10px] text-red-400/80 font-mono uppercase tracking-[0.2em]"
@@ -1406,19 +1413,19 @@ const InactionCard = ({ risk, i }: any) => {
             {[...Array(12)].map((_, idx) => (
               <motion.span
                 key={idx}
-                initial={{ 
-                  opacity: 0, 
+                initial={{
+                  opacity: 0,
                   scale: 0,
                   x: Math.random() * 300 - 150,
                   y: 200
                 }}
-                animate={{ 
+                animate={{
                   opacity: [0, 1, 0],
                   scale: [0, 1.5, 0.5],
                   y: [-20, -150 - Math.random() * 100],
                   x: (Math.random() * 200 - 100) + (idx % 2 === 0 ? 50 : -50)
                 }}
-                transition={{ 
+                transition={{
                   duration: 1.5 + Math.random(),
                   repeat: Infinity,
                   delay: Math.random() * 2
@@ -1441,8 +1448,8 @@ const InactionCard = ({ risk, i }: any) => {
       </motion.div>
 
       {/* Outer Glow */}
-      <motion.div 
-        animate={{ 
+      <motion.div
+        animate={{
           opacity: isHovered ? 0.6 : 0.2,
           scale: isHovered ? 1.1 : 1,
           backgroundColor: isHovered ? "rgba(220, 38, 38, 0.3)" : "rgba(212, 175, 55, 0.1)"
@@ -1512,13 +1519,12 @@ export default function App() {
     <TooltipProvider>
       <div className="min-h-screen bg-cyber-black text-foreground selection:bg-quantum-blue/30 overflow-x-hidden">
         <CyberBackground />
-        
+
         {/* Navigation Bar */}
-        <header className={`fixed top-0 left-0 right-0 z-50 border-b backdrop-blur-2xl transition-all duration-300 ${
-          navScrolled
-            ? 'border-gold/24 bg-cyber-black/92 shadow-[0_12px_40px_rgba(0,0,0,0.35),0_0_24px_rgba(212,175,55,0.08)]'
-            : 'border-gold/12 bg-cyber-black/82'
-        }`}>
+        <header className={`fixed top-0 left-0 right-0 z-50 border-b backdrop-blur-2xl transition-all duration-300 ${navScrolled
+          ? 'border-gold/24 bg-cyber-black/92 shadow-[0_12px_40px_rgba(0,0,0,0.35),0_0_24px_rgba(212,175,55,0.08)]'
+          : 'border-gold/12 bg-cyber-black/82'
+          }`}>
           <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
             <a href="#hero" className="group flex min-w-0 items-center gap-3 no-underline">
               <img
@@ -1582,7 +1588,7 @@ export default function App() {
         <section id="hero" className="relative pt-32 pb-20 px-6 min-h-screen flex flex-col justify-center">
           <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
             {/* Left Column: Text & Atmosphere */}
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, x: -50 }}
               whileInView={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8 }}
@@ -1620,10 +1626,10 @@ export default function App() {
                 </span>
               </h1>
               <p className="text-lg md:text-xl text-muted-foreground mb-10 max-w-xl leading-relaxed">
-                Quantum computing advances exponentially. Today's encryption won't survive tomorrow's algorithms. 
+                Quantum computing advances exponentially. Today's encryption won't survive tomorrow's algorithms.
                 The time to migrate to Post-Quantum Cryptography (PQC) is <span className="text-quantum-blue font-bold">NOW</span>.
               </p>
-              
+
               <div className="flex flex-wrap gap-4">
                 <a href="/auth" className="no-underline">
                   <Button size="lg" className="bg-gold hover:bg-gold/80 text-cyber-black px-8 rounded-none uppercase font-bold tracking-widest shadow-[0_0_20px_rgba(212,175,55,0.4)] transition-all hover:scale-105 group h-14">
@@ -1634,7 +1640,7 @@ export default function App() {
               </div>
 
               {/* Info Snippet */}
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -1659,7 +1665,7 @@ export default function App() {
             </motion.div>
 
             {/* Right Column: Video Intelligence Panel */}
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, x: 50 }}
               whileInView={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.85, delay: 0.1 }}
@@ -1667,8 +1673,8 @@ export default function App() {
               className="relative z-10 flex items-center justify-center lg:justify-end"
             >
               <div className="absolute -inset-8 bg-[radial-gradient(circle_at_50%_40%,rgba(0,243,255,0.14),transparent_54%),radial-gradient(circle_at_78%_82%,rgba(212,175,55,0.13),transparent_42%)] blur-2xl pointer-events-none" />
-              
-              <motion.div 
+
+              <motion.div
                 animate={{ y: [0, -8, 0] }}
                 transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
                 className="relative w-full max-w-[590px] group rounded-xl p-[2px]"
@@ -1757,9 +1763,9 @@ export default function App() {
                 className="relative perspective-1000"
               >
                 <div className="aspect-[4/5] relative rounded-3xl overflow-hidden glass-panel p-8">
-                  <img 
-                    src="/HNDL.png" 
-                    alt="Harvest Now, Decrypt Later" 
+                  <img
+                    src="/HNDL.png"
+                    alt="Harvest Now, Decrypt Later"
                     className="w-full h-full object-cover"
                     referrerPolicy="no-referrer"
                   />
@@ -1770,11 +1776,11 @@ export default function App() {
 
               <div className="space-y-12">
                 {[
-                  { icon: Skull, title: "Harvest now, Decrypt later", text: "State actors are siphoning traffic now. They don't need to break it today; they just need to store it until CRQC (Cryptographically Relevant Quantum Computers) arrive." },
+                  { icon: Skull, title: "Harvest now, Decrypt later", text: "State actors are siphoning your data and traffic now. They don't need to break it today; they just need to store it until CRQC (Cryptographically Relevant Quantum Computers) arrive." },
                   { icon: HourglassIcon, title: "The Window is Closing", text: "The transition to PQC takes years. Starting now is the only way to ensure data longevity. You have less than a decade to re-architect your entire stack." },
                   { icon: Zap, title: "Act Before Maturity", text: "Organizations that wait until NIST completes all standards will find themselves in a 'Digital Dust' scenario, where their entire historical archive becomes public domain." }
                 ].map((item, i) => (
-                  <motion.div 
+                  <motion.div
                     key={i}
                     initial={{ opacity: 0, x: 50 }}
                     whileInView={{ opacity: 1, x: 0 }}
@@ -1801,6 +1807,32 @@ export default function App() {
         <section className="py-20 bg-cyber-black relative overflow-hidden">
           <div className="max-w-7xl mx-auto px-6">
             <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+              className="text-center mb-16 relative"
+            >
+              {/* Background Glow */}
+              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[60%] h-24 bg-gold/10 blur-[60px] rounded-full pointer-events-none" />
+
+              <h2 className="text-4xl md:text-6xl font-black uppercase tracking-tight text-transparent bg-clip-text bg-gradient-to-b from-[#FFF3D0] via-[#D4AF37] to-[#8A6D3B] drop-shadow-[0_0_30px_rgba(212,175,55,0.55)]">
+                They’re Harvesting Your Data <span className="text-white gold-glow italic">Right Now</span>
+              </h2>
+
+              <motion.div
+                animate={{ opacity: [0.4, 1, 0.4] }}
+                transition={{ duration: 2, repeat: Infinity }}
+                className="mt-6 flex justify-center items-center gap-6"
+              >
+                <div className="h-px w-24 bg-gradient-to-r from-transparent via-gold to-transparent" />
+                <span className="text-gold font-mono text-xs font-bold uppercase tracking-[0.4em] drop-shadow-[0_0_8px_rgba(212,175,55,0.8)]">
+                  Ongoing Cyber Siphoning
+                </span>
+                <div className="h-px w-24 bg-gradient-to-r from-transparent via-gold to-transparent" />
+              </motion.div>
+            </motion.div>
+
+            <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               whileInView={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.8 }}
@@ -1808,9 +1840,9 @@ export default function App() {
             >
               <div className="absolute -inset-1 bg-gradient-to-r from-gold/20 via-gold/40 to-gold/20 rounded-[2rem] blur-xl opacity-50 group-hover:opacity-100 transition duration-1000 group-hover:duration-200" />
               <div className="relative rounded-[2rem] overflow-hidden border border-gold/20 bg-black shadow-[0_0_50px_rgba(212,175,55,0.15)]">
-                <img 
-                  src="/HarvestNow.png" 
-                  alt="Harvest Now, Decrypt Later Infographic" 
+                <img
+                  src="/HarvestNow.png"
+                  alt="Harvest Now, Decrypt Later Infographic"
                   className="w-full h-auto object-cover opacity-90 group-hover:opacity-100 transition-opacity duration-700"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
@@ -1830,7 +1862,7 @@ export default function App() {
               </div>
               <div className="hidden md:block text-right max-w-xs">
                 <p className="text-xs text-white/70 leading-relaxed">
-                  Strategic roadmap for enterprise quantum readiness integration. 
+                  Strategic roadmap for enterprise quantum readiness integration.
                   Derived from NIST PQC guidelines and NSA directives.
                 </p>
               </div>
@@ -1843,7 +1875,7 @@ export default function App() {
                 { step: "03", title: "A Ten-Year Countdown", desc: "Experts predict quantum superiority over RSA-2048 within the next decade.", icon: Clock, image: "/countdown.png" },
                 { step: "04", title: "End Denial, Start Inventory", desc: "Identify every cryptographic endpoint in your infrastructure today.", icon: Database, image: "/inventory.png" }
               ].map((card, i) => (
-                <motion.div 
+                <motion.div
                   key={i}
                   initial={{ opacity: 0, y: 30 }}
                   whileInView={{ opacity: 1, y: 0 }}
@@ -1864,9 +1896,9 @@ export default function App() {
                       <p className="text-white/78 text-sm leading-7 mb-6 group-hover:text-white/90 transition-colors">
                         {card.desc}
                       </p>
-                      <img 
-                        src={card.image} 
-                        alt={card.title} 
+                      <img
+                        src={card.image}
+                        alt={card.title}
                         className="w-full h-32 object-cover opacity-35 grayscale contrast-125 group-hover:opacity-75 group-hover:grayscale-0 transition-all duration-700 rounded-lg scale-110 group-hover:scale-100"
                         referrerPolicy="no-referrer"
                       />
@@ -1883,36 +1915,36 @@ export default function App() {
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_10%,rgba(212,175,55,0.11),transparent_38%)] pointer-events-none" />
           <div className="max-w-7xl mx-auto px-6">
             <h2 className="text-4xl font-black uppercase text-center mb-20 tracking-[0.2em] text-white">What you can <span className="text-gold gold-glow">do now</span></h2>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
               {[
-                { 
-                  icon: Search, 
-                  label: "Inventory", 
+                {
+                  icon: Search,
+                  label: "Inventory",
                   front: "Discover every PQC-vulnerable key.",
                   back: "Identify cryptographic assets across your entire infrastructure, including RSA, ECC, TLS certificates, VPN tunnels, SSH keys, databases, APIs, cloud workloads, IoT devices, and legacy applications. Build a real-time quantum exposure inventory with automated asset classification and cryptographic fingerprinting."
                 },
-                { 
-                  icon: Shield, 
-                  label: "Assess Risk", 
+                {
+                  icon: Shield,
+                  label: "Assess Risk",
                   front: "Rank systems by crypto-urgency.",
                   back: "Analyze which systems are most vulnerable to Harvest Now, Decrypt Later attacks. Prioritize assets using quantum risk scoring, business criticality, data sensitivity, compliance impact, and cryptographic weakness analysis to accelerate remediation planning."
                 },
-                { 
-                  icon: Map, 
-                  label: "Roadmap", 
+                {
+                  icon: Map,
+                  label: "Roadmap",
                   front: "Define phased migration steps.",
                   back: "Generate a structured PQC migration strategy aligned with NIST standards. Create phased upgrade plans for hybrid cryptography adoption, infrastructure modernization, certificate replacement, application compatibility testing, and long-term crypto agility."
                 },
-                { 
-                  icon: Lock, 
-                  label: "Implement", 
+                {
+                  icon: Lock,
+                  label: "Implement",
                   front: "Deploy hybrid cryptographic stacks.",
                   back: "Seamlessly deploy ML-KEM, ML-DSA, SLH-DSA, and hybrid cryptographic infrastructures across enterprise environments. Automate certificate rotation, secure key exchange modernization, PQ-TLS deployment, and cryptographic policy enforcement with real-time telemetry."
                 },
-                { 
-                  icon: Users, 
-                  label: "Educate", 
+                {
+                  icon: Users,
+                  label: "Educate",
                   front: "Train your security teams on PQC.",
                   back: "Provide interactive learning modules, migration playbooks, threat simulations, compliance guidance, and hands-on quantum security training for security teams, engineers, executives, and infrastructure administrators to accelerate enterprise-wide PQC readiness."
                 }
@@ -1927,7 +1959,7 @@ export default function App() {
                       </div>
                       <h4 className="relative z-10 font-black uppercase tracking-widest text-sm mb-3 text-white group-hover:text-gold transition-colors">{item.label}</h4>
                       <p className="relative z-10 text-[11px] leading-5 text-white/68 uppercase tracking-wider">{item.front}</p>
-                      
+
                       {/* Flip Hint */}
                       <div className="absolute bottom-4 right-4 text-gold/30 text-[10px] font-mono uppercase tracking-widest group-hover:opacity-0 transition-opacity">
                         Hover to Flip
@@ -1966,51 +1998,51 @@ export default function App() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 relative z-10">
                 {[
-                  { 
-                    phase: "Prepare", 
-                    sub: "(Now)", 
+                  {
+                    phase: "Prepare",
+                    sub: "(Now)",
                     icon: Database,
                     details: "Establish the foundation for post-quantum readiness across the organization. Identify critical systems, sensitive data, cryptographic dependencies, compliance requirements, and long-term security objectives. Build governance policies, executive awareness, and quantum migration task forces aligned with NIST PQC guidance.",
                     actions: ["Create crypto governance framework", "Identify critical business assets", "Define quantum readiness objectives", "Establish PQC migration teams", "Review compliance and regulatory impact"]
                   },
-                  { 
-                    phase: "Assess", 
-                    sub: "(Now-1 Yr)", 
+                  {
+                    phase: "Assess",
+                    sub: "(Now-1 Yr)",
                     icon: Search,
                     details: "Perform enterprise-wide cryptographic discovery and quantum risk analysis. Detect vulnerable algorithms such as RSA, ECC, DH, and weak PKI implementations across infrastructure, applications, APIs, cloud workloads, and communication systems.",
                     actions: ["Inventory cryptographic assets", "Detect PQ-vulnerable algorithms", "Analyze TLS, VPN, SSH, PKI exposure", "Rank systems by risk and urgency", "Assess Harvest Now, Decrypt Later exposure"]
                   },
-                  { 
-                    phase: "Plan", 
-                    sub: "(1-2 Yrs)", 
+                  {
+                    phase: "Plan",
+                    sub: "(1-2 Yrs)",
                     icon: Map,
                     details: "Design a phased migration roadmap for transitioning to NIST-approved post-quantum cryptography. Define hybrid cryptographic architectures, upgrade timelines, vendor dependencies, interoperability testing, and crypto-agility strategies for long-term resilience.",
                     actions: ["Build phased migration roadmap", "Select NIST-approved PQC algorithms", "Define hybrid crypto architectures", "Identify application dependencies", "Develop rollback and testing procedures"]
                   },
-                  { 
-                    phase: "Implement", 
-                    sub: "(2-4 Yrs)", 
+                  {
+                    phase: "Implement",
+                    sub: "(2-4 Yrs)",
                     icon: Zap,
                     details: "Deploy post-quantum cryptographic controls across enterprise environments using hybrid classical + PQC architectures. Integrate ML-KEM, ML-DSA, and SLH-DSA into certificates, communication channels, authentication systems, APIs, and secure storage infrastructures.",
                     actions: ["Deploy hybrid PQ-TLS environments", "Rotate vulnerable certificates and keys", "Integrate ML-KEM and ML-DSA", "Upgrade VPN, SSH, and PKI systems", "Enable real-time migration telemetry"]
                   },
-                  { 
-                    phase: "Transition", 
-                    sub: "(4-6 Yrs)", 
+                  {
+                    phase: "Transition",
+                    sub: "(4-6 Yrs)",
                     icon: Globe,
                     details: "Gradually phase out legacy cryptographic systems while validating interoperability, performance, and operational stability. Transition production workloads fully into quantum-resistant environments with continuous monitoring and policy enforcement.",
                     actions: ["Decommission legacy cryptography", "Validate interoperability and compatibility", "Enforce PQC security policies", "Monitor migration health and coverage", "Harden enterprise-wide PQ infrastructures"]
                   },
-                  { 
-                    phase: "Optimize", 
-                    sub: "(6+ Yrs)", 
+                  {
+                    phase: "Optimize",
+                    sub: "(6+ Yrs)",
                     icon: TrendingDown,
                     details: "Continuously improve crypto-agility, operational resilience, and future quantum readiness. Monitor evolving NIST standards, emerging threats, cryptographic performance, and infrastructure scalability to maintain long-term protection against future quantum capabilities.",
                     actions: ["Continuously monitor PQC posture", "Update algorithms and cryptographic policies", "Optimize performance and scalability", "Maintain crypto-agility frameworks", "Prepare for future NIST PQC revisions"]
                   }
                 ].map((step, i) => (
                   <div key={i} className="flex flex-col">
-                    <motion.div 
+                    <motion.div
                       initial={{ opacity: 0, y: 20 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       transition={{ delay: i * 0.1 }}
@@ -2018,7 +2050,7 @@ export default function App() {
                       className={`relative group z-10 rounded-xl border ${expandedNistPhase === i ? 'border-gold bg-gold/[0.08]' : 'border-gold/10 bg-cyber-black/28'} px-4 pb-6 pt-16 backdrop-blur-xl transition-all duration-500 cursor-pointer hover:border-gold/55 hover:bg-gold/[0.06] hover:shadow-[0_0_32px_rgba(212,175,55,0.22)]`}
                     >
                       <div className="-mt-12 flex flex-col items-center">
-                        <span className={`text-4xl font-black ${expandedNistPhase === i ? 'text-gold/40' : 'text-gold/16'} group-hover:text-gold/38 transition-colors mb-6`}>{i+1}</span>
+                        <span className={`text-4xl font-black ${expandedNistPhase === i ? 'text-gold/40' : 'text-gold/16'} group-hover:text-gold/38 transition-colors mb-6`}>{i + 1}</span>
                         <div className={`w-12 h-12 rounded-full border border-gold/25 ${expandedNistPhase === i ? 'bg-gold/20' : 'bg-gold/10'} text-gold shadow-[0_0_24px_rgba(212,175,55,0.2)] flex items-center justify-center mb-6 group-hover:scale-110 group-hover:shadow-[0_0_34px_rgba(212,175,55,0.45)] transition-all`}>
                           <step.icon className="w-5 h-5" />
                         </div>
@@ -2026,7 +2058,7 @@ export default function App() {
                       <div className="text-center">
                         <h4 className="font-black uppercase tracking-[0.2em] mb-2 text-white group-hover:text-gold transition-colors">{step.phase}</h4>
                         <p className="text-[10px] font-mono text-white/60 uppercase group-hover:text-white/78 transition-colors">{step.sub}</p>
-                        
+
                         <div className="mt-4 flex justify-center">
                           <motion.div
                             animate={{ rotate: expandedNistPhase === i ? 180 : 0 }}
@@ -2052,7 +2084,7 @@ export default function App() {
                             <p className="text-xs leading-relaxed text-white/90 mb-6 italic">
                               {step.details}
                             </p>
-                            
+
                             <h5 className="text-gold font-bold uppercase tracking-widest text-[10px] mb-3 flex items-center gap-2">
                               <span className="w-1.5 h-1.5 rounded-full bg-gold animate-pulse" />
                               Key Actions
@@ -2079,20 +2111,20 @@ export default function App() {
         {/* Impact of Inaction Section */}
         <section className="py-40 bg-cyber-black relative overflow-hidden">
           {/* Section Darkening Overlay */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
-            className="absolute inset-0 bg-gradient-to-b from-black via-transparent to-black pointer-events-none z-0" 
+            className="absolute inset-0 bg-gradient-to-b from-black via-transparent to-black pointer-events-none z-0"
           />
-          
+
           <div className="max-w-7xl mx-auto px-6 relative z-10">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               className="text-center mb-32"
             >
-              <motion.h2 
-                animate={{ 
+              <motion.h2
+                animate={{
                   textShadow: [
                     "0 0 20px rgba(212, 175, 55, 0.5)",
                     "0 0 40px rgba(212, 175, 55, 0.8)",
@@ -2113,7 +2145,7 @@ export default function App() {
                 </p>
               </div>
             </motion.div>
-            
+
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-10">
               {[
                 { title: "Data Breaches", icon: Skull, val: "100%", desc: "All historically captured encrypted data becomes readable.", color: "text-gold" },
@@ -2139,7 +2171,7 @@ export default function App() {
             >
               <div className="text-center mb-14">
                 <h3 className="text-3xl md:text-5xl font-bold tracking-[0.12em] text-white">
-                  How QGuard <span className="text-gold gold-glow">Protects You</span>
+                  How QGuard Helix <span className="text-gold gold-glow">Protects You</span>
                 </h3>
                 <p className="mt-4 text-sm md:text-base text-muted-foreground tracking-wide">
                   Three steps to quantum-safe digital life
@@ -2194,6 +2226,7 @@ export default function App() {
             </motion.div>
 
             <EnterpriseProtectionShowcase />
+            <Hero195 />
             <QuantumSecurityUseCasesSection />
             <TestimonialsSection />
             <PricingSection />
@@ -2204,9 +2237,9 @@ export default function App() {
         {/* Footer / CTA Final */}
         <footer className="pt-32 pb-16 bg-[#050505] border-t border-gold/20 relative overflow-hidden">
           <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-gold to-transparent" />
-          
+
           <div className="max-w-6xl mx-auto px-6 relative z-10">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 50 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -2219,11 +2252,11 @@ export default function App() {
               <p className="text-xl text-white/70 uppercase tracking-widest font-light max-w-2xl">
                 Secure your organization's legacy today with military-grade PQC infrastructure.
               </p>
-              
+
               <div className="flex flex-col sm:flex-row justify-center gap-6 pt-6">
-                <Button 
+                <Button
                   onClick={() => navigate('/auth')}
-                  size="lg" 
+                  size="lg"
                   className="bg-gold text-black hover:bg-yellow-400 px-12 rounded-xl h-14 font-black uppercase tracking-[0.15em] transition-all shadow-[0_0_20px_rgba(212,175,55,0.3)] hover:shadow-[0_0_35px_rgba(212,175,55,0.5)] hover:scale-105"
                 >
                   Request PQC Audit
@@ -2238,7 +2271,7 @@ export default function App() {
                   { label: "PQC Migration", status: "V1.0 Ready", border: "border-green-500/30", bg: "bg-green-500/5", text: "text-green-400" },
                   { label: "NIST 800-203", status: "Compliant", border: "border-cyan-500/30", bg: "bg-cyan-500/5", text: "text-cyan-400" }
                 ].map((item, i) => (
-                  <motion.div 
+                  <motion.div
                     key={i}
                     whileHover={{ scale: 1.05, y: -5 }}
                     className={`p-4 rounded-xl border ${item.border} ${item.bg} flex flex-col items-center justify-center gap-2 cursor-pointer transition-all duration-300 hover:shadow-[0_0_20px_rgba(255,255,255,0.1)]`}
@@ -2261,7 +2294,7 @@ export default function App() {
                     &copy; {new Date().getFullYear()} Qguard Helix Defense // Secure // Modernize // Future-Proof
                   </div>
                 </div>
-                
+
                 {/* Social Icons */}
                 <div className="flex items-center gap-4">
                   {[
@@ -2286,7 +2319,7 @@ export default function App() {
               </div>
             </motion.div>
           </div>
-          
+
           {/* Subtle Deep Background Details */}
           <div className="absolute -bottom-40 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-gold/10 blur-[150px] rounded-full pointer-events-none" />
         </footer>

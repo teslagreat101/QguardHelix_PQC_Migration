@@ -21,7 +21,7 @@ const IPV4_CIDR_RE = /^(\d{1,3}\.){3}\d{1,3}\/\d{1,2}$/;
 const IPV6_RE = /^([0-9a-fA-F]{0,4}:){2,7}[0-9a-fA-F]{0,4}$/;
 const DOMAIN_RE = /^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$/;
 const HOSTNAME_RE = /^[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?$/;
-const URL_RE = /^https?:\/\/.+/i;
+const URL_RE = /^(?:https?|ssh):\/\/.+/i;
 const PORT_RE = /:(\d{1,5})$/;
 
 // Dangerous patterns to reject
@@ -88,13 +88,15 @@ export function validateAsset(raw: string): ValidatedAsset {
   if (URL_RE.test(cleaned)) {
     try {
       const url = new URL(cleaned);
+      const protocol = url.protocol.replace(':', '');
+      const defaultPort = protocol === 'ssh' ? 22 : protocol === 'https' ? 443 : 80;
       return {
         ...base,
         normalized: cleaned,
         type: 'url',
         host: url.hostname,
-        port: url.port ? parseInt(url.port) : (url.protocol === 'https:' ? 443 : 80),
-        protocol: url.protocol.replace(':', ''),
+        port: url.port ? parseInt(url.port) : defaultPort,
+        protocol,
         valid: true,
       };
     } catch {
