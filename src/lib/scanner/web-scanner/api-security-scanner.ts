@@ -90,9 +90,10 @@ async function probeFetch(
   url: string,
   method: string = 'HEAD'
 ): Promise<Response | null> {
+  let timeout: ReturnType<typeof setTimeout> | undefined
   try {
     const controller = new AbortController()
-    const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT)
+    timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT)
 
     const response = await fetch(url, {
       method,
@@ -104,10 +105,11 @@ async function probeFetch(
       redirect: 'follow',
     })
 
-    clearTimeout(timeout)
     return response
   } catch {
     return null
+  } finally {
+    if (timeout) clearTimeout(timeout)
   }
 }
 
@@ -290,12 +292,19 @@ export async function scanApiSecurity(hostname: string): Promise<ApiSecurityResu
     }
   }
 
-  // Step 2: Probe API endpoints
-  for (const path of API_PATHS) {
-    if (path === '/') continue // Already probed
+  // Step 2: Probe API endpoints in parallel. Running these serially can exceed
+  // the module timeout on hosts that drop connections or have flaky DNS.
+  const endpointResponses = await Promise.all(
+    API_PATHS
+      .filter((path) => path !== '/')
+      .map(async (path) => {
+        const url = `${baseUrl}${path}`
+        const response = await probeFetch(url, 'GET')
+        return { path, url, response }
+      })
+  )
 
-    const url = `${baseUrl}${path}`
-    const response = await probeFetch(url, 'GET')
+  for (const { path, url, response } of endpointResponses) {
     if (!response) continue
     endpointsProbed++
 

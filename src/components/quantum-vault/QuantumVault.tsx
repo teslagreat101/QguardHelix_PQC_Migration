@@ -11,6 +11,7 @@ import {
   LockKeyhole,
   Orbit,
   ShieldCheck,
+  XCircle,
   Zap,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
@@ -19,6 +20,17 @@ import VaultPassphrase from './VaultPassphrase'
 import VaultUploadPanel from './VaultUploadPanel'
 import type { ZKMasterKeys } from '@/lib/vault/client-crypto'
 import { ensureVaultProfile, fetchUserKeys } from '@/lib/vault/vault-service-enhanced'
+
+export type VaultCardTelemetry = 'connected' | 'standby' | 'offline' | 'updating' | 'error'
+
+export interface VaultStatusCardState {
+  healthy: boolean
+  headline?: string
+  state: string
+  description: string
+  lastVerifiedAt: string | null
+  telemetry: VaultCardTelemetry
+}
 
 export interface VaultHeroMetrics {
   fileCount: number
@@ -33,6 +45,12 @@ export interface VaultHeroMetrics {
   systemHealth: 'optimal' | 'degraded' | 'offline'
   telemetryConnected: boolean
   recentActivity: string[]
+  statusCards: {
+    vault: VaultStatusCardState
+    encryption: VaultStatusCardState
+    integrity: VaultStatusCardState
+    architecture: VaultStatusCardState
+  }
 }
 
 interface QuantumVaultProps {
@@ -67,56 +85,117 @@ function SparkLine({ active = true }: { active?: boolean }) {
   )
 }
 
+function formatStatusTimestamp(value: string | null): string {
+  if (!value) return 'Not yet verified'
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return 'Not yet verified'
+  return date.toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
+function telemetryLabel(telemetry: VaultCardTelemetry): string {
+  switch (telemetry) {
+    case 'connected': return 'Realtime connected'
+    case 'updating': return 'Updating now'
+    case 'error': return 'Telemetry error'
+    case 'offline': return 'Telemetry offline'
+    default: return 'Realtime standby'
+  }
+}
+
 function CyberCard({
   icon: Icon,
   label,
-  value,
-  caption,
+  status,
 }: {
   icon: LucideIcon
   label: string
-  value: string
-  caption: string
+  status: VaultStatusCardState
 }) {
+  const StatusIcon = status.healthy ? CheckCircle2 : XCircle
+  const statusColor = status.healthy ? '#33f39b' : '#ff5470'
+  const statusShadow = status.healthy ? 'rgba(51,243,155,0.42)' : 'rgba(255,84,112,0.38)'
+  const headline = status.headline || status.state
+
   return (
     <motion.div
-      whileHover={{ y: -3, boxShadow: '0 0 34px rgba(212,175,55,0.18)' }}
-      transition={{ duration: 0.22 }}
+      className="qv-glass-card"
+      whileHover={{
+        y: -5,
+        scale: 1.012,
+        boxShadow: `0 18px 46px rgba(0,0,0,0.5), 0 0 34px rgba(212,175,55,0.22), inset 0 0 28px rgba(255,214,104,0.1), 0 0 22px ${statusShadow}`,
+      }}
+      transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
       style={{
-        minHeight: 86,
-        padding: '13px 16px',
+        minHeight: 118,
+        padding: '13px 16px 12px',
         display: 'flex',
-        alignItems: 'center',
-        gap: 12,
-        border: '1px solid rgba(212,175,55,0.52)',
+        alignItems: 'flex-start',
+        gap: 13,
+        position: 'relative',
+        overflow: 'hidden',
+        borderStyle: 'solid',
+        borderWidth: 1,
+        borderColor: status.healthy ? 'rgba(212,175,55,0.56)' : 'rgba(255,84,112,0.42)',
+        borderTopColor: 'rgba(255,231,151,0.72)',
         background:
-          'linear-gradient(135deg, rgba(212,175,55,0.12), rgba(8,7,2,0.82) 34%, rgba(0,0,0,0.86))',
+          'linear-gradient(135deg, rgba(255,214,104,0.13), rgba(17,14,6,0.56) 38%, rgba(0,0,0,0.64)), rgba(8,7,2,0.38)',
         clipPath: 'polygon(4% 0, 96% 0, 100% 16%, 100% 84%, 96% 100%, 4% 100%, 0 84%, 0 16%)',
-        boxShadow: 'inset 0 0 26px rgba(212,175,55,0.08), 0 0 18px rgba(212,175,55,0.08)',
+        backdropFilter: 'blur(18px) saturate(145%)',
+        WebkitBackdropFilter: 'blur(18px) saturate(145%)',
+        boxShadow: '0 14px 38px rgba(0,0,0,0.42), inset 0 0 28px rgba(255,214,104,0.08), inset 0 1px 0 rgba(255,243,193,0.08), 0 0 18px rgba(212,175,55,0.1)',
       }}
     >
+      <span className="qv-card-orb" style={{ background: statusColor, boxShadow: `0 0 22px ${statusShadow}` }} />
       <div
         style={{
-          width: 42,
-          height: 42,
+          width: 40,
+          height: 40,
           display: 'grid',
           placeItems: 'center',
           color: gold,
           filter: 'drop-shadow(0 0 10px rgba(212,175,55,0.65))',
           flex: '0 0 auto',
+          marginTop: 3,
         }}
       >
-        <Icon size={30} strokeWidth={1.6} />
+        <Icon size={28} strokeWidth={1.55} />
       </div>
-      <div style={{ minWidth: 0 }}>
-        <div style={{ fontSize: 9.5, letterSpacing: '0.12em', color: 'rgba(255,214,104,0.78)', textTransform: 'uppercase', marginBottom: 4 }}>
-          {label}
+      <div style={{ minWidth: 0, flex: 1 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'space-between', marginBottom: 5 }}>
+          <div style={{ fontSize: 9.5, letterSpacing: '0.12em', color: 'rgba(255,214,104,0.8)', textTransform: 'uppercase' }}>
+            {label}
+          </div>
+          <div
+            className="qv-status-badge"
+            style={{
+              color: statusColor,
+              borderColor: status.healthy ? 'rgba(51,243,155,0.28)' : 'rgba(255,84,112,0.32)',
+              background: status.healthy ? 'rgba(51,243,155,0.08)' : 'rgba(255,84,112,0.09)',
+            }}
+            aria-label={status.healthy ? `${label} active` : `${label} requires attention`}
+          >
+            <StatusIcon size={13} strokeWidth={2.2} />
+          </div>
         </div>
         <div style={{ fontSize: 17, lineHeight: 1.08, color: '#fff7c9', fontWeight: 800, letterSpacing: '0.02em', textShadow: '0 0 18px rgba(212,175,55,0.5)' }}>
-          {value}
+          {headline}
         </div>
+        {headline !== status.state && (
+          <div className="qv-card-state" style={{ color: statusColor }}>
+            {status.state}
+          </div>
+        )}
         <div style={{ fontSize: 10.5, color: 'rgba(255,255,255,0.56)', marginTop: 5, lineHeight: 1.35 }}>
-          {caption}
+          {status.description}
+        </div>
+        <div className="qv-card-meta">
+          <span>Last verified: {formatStatusTimestamp(status.lastVerifiedAt)}</span>
+          <span>{telemetryLabel(status.telemetry)}</span>
         </div>
       </div>
     </motion.div>
@@ -124,67 +203,130 @@ function CyberCard({
 }
 
 function OverviewPanel({ metrics, unlocked }: { metrics: VaultHeroMetrics; unlocked: boolean }) {
+  const encryptionStatus = metrics.statusCards.encryption
+  const architectureStatus = metrics.statusCards.architecture
+  const integrityStatus = metrics.statusCards.integrity
+  const vaultStatus = metrics.statusCards.vault
   const overview = [
     {
       icon: ShieldCheck,
-      title: 'Quantum Shield Active',
-      copy: `${metrics.encryptedFileCount}/${Math.max(metrics.fileCount, 1)} files sealed with per-file keys`,
+      status: encryptionStatus,
+      title: 'ML-KEM-768 Shield',
+      copy: metrics.fileCount === 0
+        ? `${encryptionStatus.state} - no files sealed yet`
+        : `${encryptionStatus.state} - ${metrics.encryptedFileCount}/${metrics.fileCount} files sealed with per-file keys`,
     },
     {
       icon: LockKeyhole,
-      title: 'Zero Knowledge Protocol',
-      copy: unlocked ? 'Local keys unlocked in this tab only' : 'No plaintext leaves the browser',
+      status: architectureStatus,
+      title: 'ZERO-KNOWLEDGE Protocol',
+      copy: unlocked
+        ? `${architectureStatus.state} - local keys unlocked in this tab only`
+        : architectureStatus.description,
     },
     {
       icon: Orbit,
-      title: 'Tamper Proof Infrastructure',
-      copy: metrics.recentActivity[0] || 'Awaiting first verified vault event',
+      status: integrityStatus,
+      title: 'ML-DSA-65 Integrity',
+      copy: `${integrityStatus.state} - ${integrityStatus.description}`,
     },
     {
       icon: Box,
+      status: vaultStatus,
       title: 'Future Proof Security',
-      copy: 'OQS-ready metadata with ML-KEM and ML-DSA identifiers',
+      copy: `${vaultStatus.state} - ${metrics.recentActivity[0] || vaultStatus.description}`,
     },
   ]
 
   return (
     <div className="qv-side-panel">
       <div className="qv-panel-title">Vault Overview</div>
-      {overview.map(({ icon: Icon, title, copy }) => (
-        <div key={title} className="qv-overview-row">
-          <Icon size={26} strokeWidth={1.45} />
-          <div>
-            <div className="qv-row-title">{title}</div>
-            <div className="qv-row-copy">{copy}</div>
+      {overview.map(({ icon: Icon, status, title, copy }) => {
+        const StatusIcon = status.healthy ? CheckCircle2 : XCircle
+        return (
+          <div key={title} className="qv-overview-row">
+            <Icon size={26} strokeWidth={1.45} />
+            <div>
+              <div className="qv-row-title">{title}</div>
+              <div className="qv-row-copy">{copy}</div>
+              <div className="qv-row-telemetry">Last verified: {formatStatusTimestamp(status.lastVerifiedAt)} / {telemetryLabel(status.telemetry)}</div>
+            </div>
+            <span className="qv-row-status" style={{ color: status.healthy ? '#33f39b' : '#ff5470' }}>
+              <StatusIcon size={15} strokeWidth={2.2} />
+            </span>
           </div>
-        </div>
-      ))}
+        )
+      })}
     </div>
   )
 }
 
 function SecurityMetricsPanel({ metrics }: { metrics: VaultHeroMetrics }) {
+  const vaultNumeric = metrics.statusCards.vault.healthy ? 100 : metrics.telemetryConnected ? 70 : 0
+  const systemNumeric = Math.round((vaultNumeric + metrics.quantumResistance + metrics.integrityScore + metrics.zeroKnowledgeScore) / 4)
   const rows = [
-    { icon: ShieldCheck, label: 'Vault Integrity', value: `${metrics.integrityScore}%`, numeric: metrics.integrityScore },
-    { icon: LockKeyhole, label: 'Encryption Strength', value: '768-bit', numeric: 100 },
-    { icon: Atom, label: 'Quantum Resistance', value: `${metrics.quantumResistance}%`, numeric: metrics.quantumResistance },
-    { icon: Fingerprint, label: 'Zero Knowledge Score', value: `${metrics.zeroKnowledgeScore}%`, numeric: metrics.zeroKnowledgeScore },
-    { icon: Box, label: 'System Health', value: metrics.systemHealth.toUpperCase(), numeric: metrics.systemHealth === 'optimal' ? 100 : 72 },
+    {
+      icon: ShieldCheck,
+      status: metrics.statusCards.integrity,
+      label: 'Vault Integrity',
+      value: `${metrics.integrityScore}%`,
+      numeric: metrics.integrityScore,
+      copy: metrics.statusCards.integrity.state,
+    },
+    {
+      icon: LockKeyhole,
+      status: metrics.statusCards.encryption,
+      label: 'Encryption Strength',
+      value: metrics.statusCards.encryption.healthy ? '768-bit' : `${metrics.quantumResistance}%`,
+      numeric: metrics.quantumResistance,
+      copy: metrics.statusCards.encryption.headline || 'ML-KEM-768',
+    },
+    {
+      icon: Atom,
+      status: metrics.statusCards.encryption,
+      label: 'Quantum Resistance',
+      value: `${metrics.quantumResistance}%`,
+      numeric: metrics.quantumResistance,
+      copy: metrics.statusCards.encryption.state,
+    },
+    {
+      icon: Fingerprint,
+      status: metrics.statusCards.architecture,
+      label: 'Zero Knowledge Score',
+      value: `${metrics.zeroKnowledgeScore}%`,
+      numeric: metrics.zeroKnowledgeScore,
+      copy: metrics.statusCards.architecture.headline || 'ZERO-KNOWLEDGE',
+    },
+    {
+      icon: Box,
+      status: metrics.statusCards.vault,
+      label: 'System Health',
+      value: metrics.systemHealth.toUpperCase(),
+      numeric: systemNumeric,
+      copy: metrics.statusCards.vault.state,
+    },
   ]
 
   return (
     <div className="qv-side-panel">
       <div className="qv-panel-title">Security Metrics</div>
-      {rows.map(({ icon: Icon, label, value, numeric }) => (
-        <div key={label} className="qv-metric-row">
-          <Icon size={24} strokeWidth={1.45} />
-          <div style={{ flex: 1 }}>
-            <div className="qv-row-title">{label}</div>
-            <div className="qv-metric-value" style={{ color: metricTone(numeric) }}>{value}</div>
+      {rows.map(({ icon: Icon, status, label, value, numeric, copy }) => {
+        const StatusIcon = status.healthy ? CheckCircle2 : XCircle
+        return (
+          <div key={label} className="qv-metric-row">
+            <Icon size={24} strokeWidth={1.45} />
+            <div style={{ flex: 1 }}>
+              <div className="qv-row-title">{label}</div>
+              <div className="qv-metric-value" style={{ color: metricTone(numeric) }}>{value}</div>
+              <div className="qv-metric-caption">{copy}</div>
+            </div>
+            <SparkLine active={status.healthy && numeric >= 75} />
+            <span className="qv-row-status" style={{ color: status.healthy ? '#33f39b' : '#ff5470' }}>
+              <StatusIcon size={15} strokeWidth={2.2} />
+            </span>
           </div>
-          <SparkLine active={numeric >= 75} />
-        </div>
-      ))}
+        )
+      })}
     </div>
   )
 }
@@ -302,6 +444,69 @@ export default function QuantumVault({ sessionToken, metrics, onFileUploaded, on
           max-width: 1220px;
           margin: 0 auto 14px;
         }
+        .qv-glass-card::before {
+          content: "";
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+          background:
+            linear-gradient(110deg, transparent 0%, rgba(255,231,151,0.02) 30%, rgba(255,231,151,0.18) 48%, rgba(255,231,151,0.02) 64%, transparent 100%),
+            radial-gradient(circle at 12% 0%, rgba(255,243,193,0.16), transparent 32%);
+          transform: translateX(-122%);
+          transition: transform 0.72s ease, opacity 0.72s ease;
+          opacity: 0.42;
+        }
+        .qv-glass-card::after {
+          content: "";
+          position: absolute;
+          inset: 1px;
+          pointer-events: none;
+          border: 1px solid rgba(255,243,193,0.07);
+          clip-path: inherit;
+        }
+        .qv-glass-card:hover::before {
+          transform: translateX(122%);
+          opacity: 0.82;
+        }
+        .qv-card-orb {
+          position: absolute;
+          right: 12px;
+          bottom: 11px;
+          width: 5px;
+          height: 5px;
+          border-radius: 50%;
+          opacity: 0.9;
+          animation: qv-pulse 1.8s ease-in-out infinite;
+        }
+        .qv-status-badge {
+          min-width: 25px;
+          height: 25px;
+          display: inline-grid;
+          place-items: center;
+          border: 1px solid;
+          border-radius: 8px;
+          box-shadow: inset 0 0 12px rgba(255,255,255,0.04);
+          flex: 0 0 auto;
+        }
+        .qv-card-meta {
+          display: grid;
+          gap: 2px;
+          margin-top: 9px;
+          font-family: var(--font-mono);
+          color: rgba(255,243,193,0.5);
+          font-size: 8.8px;
+          line-height: 1.34;
+          letter-spacing: 0;
+        }
+        .qv-card-state {
+          margin-top: 5px;
+          font-family: var(--font-mono);
+          font-size: 9px;
+          font-weight: 800;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          text-shadow: 0 0 10px currentColor;
+        }
         .qv-stage {
           position: relative;
           z-index: 1;
@@ -351,11 +556,21 @@ export default function QuantumVault({ sessionToken, metrics, onFileUploaded, on
           filter: blur(0.2px);
         }
         .qv-side-panel {
-          border: 1px solid rgba(212,175,55,0.42);
-          background: linear-gradient(180deg, rgba(12,10,2,0.82), rgba(0,0,0,0.82));
+          border: 1px solid rgba(212,175,55,0.46);
+          background:
+            linear-gradient(140deg, rgba(255,214,104,0.1), rgba(12,10,2,0.56) 34%, rgba(0,0,0,0.68)),
+            rgba(8,7,2,0.42);
           clip-path: polygon(5% 0, 95% 0, 100% 5%, 100% 95%, 95% 100%, 5% 100%, 0 95%, 0 5%);
+          backdrop-filter: blur(18px) saturate(145%);
+          -webkit-backdrop-filter: blur(18px) saturate(145%);
           padding: 16px 18px 14px;
-          box-shadow: inset 0 0 28px rgba(212,175,55,0.06), 0 0 28px rgba(212,175,55,0.08);
+          box-shadow: 0 16px 42px rgba(0,0,0,0.44), inset 0 0 28px rgba(212,175,55,0.08), inset 0 1px 0 rgba(255,243,193,0.08), 0 0 28px rgba(212,175,55,0.08);
+          transition: transform 0.24s ease, box-shadow 0.24s ease, border-color 0.24s ease;
+        }
+        .qv-side-panel:hover {
+          transform: translateY(-2px);
+          border-color: rgba(255,214,104,0.62);
+          box-shadow: 0 20px 52px rgba(0,0,0,0.5), inset 0 0 32px rgba(212,175,55,0.1), 0 0 38px rgba(212,175,55,0.12);
         }
         .qv-panel-title {
           margin-bottom: 11px;
@@ -372,9 +587,10 @@ export default function QuantumVault({ sessionToken, metrics, onFileUploaded, on
           display: flex;
           align-items: center;
           gap: 12px;
-          min-height: 57px;
+          min-height: 63px;
           color: ${gold};
           border-bottom: 1px dotted rgba(212,175,55,0.16);
+          position: relative;
         }
         .qv-overview-row:last-child, .qv-metric-row:last-child { border-bottom: 0; }
         .qv-overview-row > div, .qv-metric-row > div { min-width: 0; }
@@ -389,6 +605,27 @@ export default function QuantumVault({ sessionToken, metrics, onFileUploaded, on
           color: rgba(255,255,255,0.62);
           font-size: 10.5px;
           line-height: 1.35;
+        }
+        .qv-row-telemetry,
+        .qv-metric-caption {
+          margin-top: 3px;
+          color: rgba(255,243,193,0.42);
+          font-family: var(--font-mono);
+          font-size: 8.6px;
+          line-height: 1.3;
+          letter-spacing: 0;
+        }
+        .qv-row-status {
+          width: 21px;
+          height: 21px;
+          display: inline-grid;
+          place-items: center;
+          border: 1px solid currentColor;
+          border-radius: 8px;
+          background: rgba(0,0,0,0.3);
+          box-shadow: inset 0 0 12px rgba(255,255,255,0.04), 0 0 13px currentColor;
+          opacity: 0.88;
+          flex: 0 0 auto;
         }
         .qv-metric-value {
           margin-top: 2px;
@@ -488,26 +725,22 @@ export default function QuantumVault({ sessionToken, metrics, onFileUploaded, on
         <CyberCard
           icon={ShieldCheck}
           label="Vault Status"
-          value={metrics.systemHealth === 'optimal' ? 'Secured' : 'Attention'}
-          caption={metrics.telemetryConnected ? 'Live telemetry connected' : 'Realtime channel standby'}
+          status={metrics.statusCards.vault}
         />
         <CyberCard
           icon={LockKeyhole}
           label="Encryption"
-          value="ML-KEM-768"
-          caption={`${metrics.encryptedFileCount} encrypted files`}
+          status={metrics.statusCards.encryption}
         />
         <CyberCard
           icon={Fingerprint}
           label="Integrity"
-          value="ML-DSA-65"
-          caption={`${metrics.integrityScore}% verification posture`}
+          status={metrics.statusCards.integrity}
         />
         <CyberCard
           icon={Atom}
           label="Architecture"
-          value="Zero-Knowledge"
-          caption={`${metrics.activeKeyCount} active vault keys`}
+          status={metrics.statusCards.architecture}
         />
       </div>
 

@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { useAuth } from '@/contexts/auth-context'
-import QuantumVault, { type VaultHeroMetrics } from '@/components/quantum-vault/QuantumVault'
+import QuantumVault, { type VaultCardTelemetry, type VaultHeroMetrics } from '@/components/quantum-vault/QuantumVault'
 import ShareLinkModal from '@/components/quantum-vault/ShareLinkModal'
 import ShareSecurityAlerts from '@/components/quantum-vault/ShareSecurityAlerts'
 import VaultFolderExplorer from '@/components/quantum-vault/VaultFolderExplorer'
@@ -63,6 +63,8 @@ interface VaultFileEntry {
   key_derivation_meta?: Record<string, unknown> | null
   aad_hash?: string | null
   folder_id?: string | null
+  processing_status?: string
+  encryption_status?: string
 }
 
 interface VaultKeyEntry {
@@ -168,6 +170,153 @@ function eventIcon(eventType: string): string {
 }
 
 // ─── Main Component ────────────────────────────────────────
+
+function asRecord(value: unknown): Record<string, unknown> | null {
+  if (!value) return null
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value)
+      return parsed && typeof parsed === 'object' && !Array.isArray(parsed)
+        ? parsed as Record<string, unknown>
+        : null
+    } catch {
+      return null
+    }
+  }
+  return typeof value === 'object' && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : null
+}
+
+function textFromRecord(record: Record<string, unknown> | null, key: string): string {
+  const value = record?.[key]
+  return typeof value === 'string' ? value : ''
+}
+
+function hasText(value: unknown): boolean {
+  return typeof value === 'string' && value.trim().length > 0
+}
+
+function hasRequiredPqcEnvelope(file: VaultFileEntry): boolean {
+  const meta = asRecord(file.envelope_meta)
+  const kdfMeta = asRecord(file.key_derivation_meta)
+  const algorithmText = [
+    file.encryption_algorithm,
+    textFromRecord(meta, 'mode'),
+    textFromRecord(meta, 'kem'),
+    textFromRecord(meta, 'kex'),
+    textFromRecord(meta, 'symmetric'),
+    textFromRecord(meta, 'kdf'),
+    textFromRecord(kdfMeta, 'kdf'),
+  ].join(' ')
+
+  const hasHybridKem =
+    algorithmText.includes('X25519+ML-KEM-768') &&
+    textFromRecord(meta, 'mode') === 'hybrid' &&
+    textFromRecord(meta, 'kem') === 'ML-KEM-768'
+
+  const hasAesGcm =
+    algorithmText.includes('AES-256-GCM') &&
+    textFromRecord(meta, 'symmetric') === 'AES-256-GCM' &&
+    hasText(file.aes_nonce) &&
+    hasText(file.aes_auth_tag)
+
+  const hasKeyWrap =
+    textFromRecord(meta, 'kdf') === 'HKDF-SHA3-256' &&
+    hasText(textFromRecord(meta, 'wrappedDataKey')) &&
+    hasText(textFromRecord(meta, 'wrapNonce')) &&
+    hasText(textFromRecord(meta, 'wrapSalt')) &&
+    hasText(textFromRecord(meta, 'x25519EphemeralPublic')) &&
+    hasText(file.kem_ciphertext)
+
+  return Boolean(
+    file.is_locked &&
+    file.processing_status !== 'failed' &&
+    hasHybridKem &&
+    hasAesGcm &&
+    hasKeyWrap,
+  )
+}
+
+function hasRequiredIntegrityStack(file: VaultFileEntry): boolean {
+  const meta = asRecord(file.envelope_meta)
+  return Boolean(
+    hasRequiredPqcEnvelope(file) &&
+    textFromRecord(meta, 'signature') === 'Ed25519+ML-DSA-65' &&
+    textFromRecord(meta, 'hash') === 'SHA3-256' &&
+    textFromRecord(meta, 'encryptedHash') === 'SHA3-512' &&
+    hasText(file.integrity_hash) &&
+    hasText(file.encrypted_content_hash) &&
+    hasText(file.aad_hash) &&
+    hasText(textFromRecord(meta, 'aadHash')) &&
+    hasText(textFromRecord(meta, 'signedMetadata')) &&
+    hasText(file.signature),
+  )
+}
+
+function hasZeroKnowledgeEnvelope(file: VaultFileEntry): boolean {
+  return Boolean(
+    hasRequiredPqcEnvelope(file) &&
+    file.encryption_key_id == null &&
+    file.signing_key_id == null,
+  )
+}
+
+function latestIso(values: Array<string | null | undefined>): string | null {
+  const latest = values
+    .map((value) => (value ? new Date(value).getTime() : Number.NaN))
+    .filter((value) => Number.isFinite(value))
+    .sort((a, b) => b - a)[0]
+
+  return Number.isFinite(latest) ? new Date(latest).toISOString() : null
+}
+
+function latestEventIso(
+  events: Array<{ event_type: string; created_at: string }>,
+  eventTypes: string[],
+): string | null {
+  const wanted = new Set(eventTypes)
+  return latestIso(events.filter((event) => wanted.has(event.event_type)).map((event) => event.created_at))
+}
+
+function recentFailedEvent(
+  events: Array<{ event_type: string; severity: string; created_at: string }>,
+  eventTypes: string[],
+): boolean {
+  const wanted = new Set(eventTypes)
+  const latestFailure = latestIso(
+    events
+      .filter((event) => wanted.has(event.event_type) && event.severity === 'critical')
+      .map((event) => event.created_at),
+  )
+  if (!latestFailure) return false
+
+  const latestRecovery = latestEventIso(events, [
+    'file_integrity_verified',
+    'signature_verification_passed',
+    'encryption_completed',
+    'vault_health_updated',
+  ])
+
+  return !latestRecovery || new Date(latestFailure) > new Date(latestRecovery)
+}
+
+function resolveTelemetryState({
+  fetchError,
+  sessionToken,
+  realtimeConnected,
+  busy,
+}: {
+  fetchError: string | null
+  sessionToken?: string
+  realtimeConnected: boolean
+  busy: boolean
+}): VaultCardTelemetry {
+  if (fetchError) return 'error'
+  if (busy) return 'updating'
+  if (realtimeConnected) return 'connected'
+  return sessionToken ? 'standby' : 'offline'
+}
 
 function hexToBytes(hex: string): Uint8Array {
   const pairs = hex.match(/.{1,2}/g) || []
@@ -587,12 +736,18 @@ export default function VaultPage() {
 
   // ─── Verify Integrity ────────────────────────────────
 
-  const handleVerify = async (fileId: string) => {
+  const handleVerify = async (fileId: string, clickedFile?: VaultFileEntry) => {
     setVerifying(fileId)
     setVerifyResult(null)
     try {
-      const file = files.find(f => f.id === fileId)
-      if (!file) throw new Error('File not found')
+      let file = filesRef.current.find(f => f.id === fileId) || clickedFile
+      if (!file) {
+        const latestFiles = await vaultSvc.fetchAllVaultFiles()
+        setFiles(latestFiles)
+        filesRef.current = latestFiles
+        file = latestFiles.find(f => f.id === fileId)
+      }
+      if (!file) throw new Error('File not found in your vault. Refresh the folder and try again.')
 
       pushTelemetry('file_verification_running', `File verification running: ${file.name}`)
       await vaultSvc.logAudit('file_verification_running', 'info', 'file', fileId, `File verification running: ${file.name}`)
@@ -651,7 +806,13 @@ export default function VaultPage() {
       )
     } catch (err) {
       console.error('Verify failed:', err)
-      pushTelemetry('file_verification_failed', `File verification failed: ${err instanceof Error ? err.message : fileId}`, 'critical')
+      const message = err instanceof Error ? err.message : 'Verification failed'
+      pushTelemetry('file_verification_failed', `File verification failed: ${message}`, 'critical')
+      showAlert({
+        variant: 'error',
+        title: 'File verification failed',
+        description: message,
+      })
     } finally {
       setVerifying(null)
     }
@@ -732,7 +893,7 @@ export default function VaultPage() {
       case 'encrypt': handleEncrypt(file.id); break
       case 'decrypt': handleDecrypt(file.id); break
       case 'download': handleDownloadEncrypted(file.id, file.name); break
-      case 'verify': handleVerify(file.id); break
+      case 'verify': handleVerify(file.id, file); break
       case 'share': setShareModalFile({ id: file.id, name: file.name }); break
       case 'delete': handleDelete(file.id); break
     }
@@ -809,12 +970,55 @@ export default function VaultPage() {
 
   const heroMetrics: VaultHeroMetrics = useMemo(() => {
     const encryptedFileCount = files.filter((file) => file.is_locked).length
+    const requiredEnvelopeCount = files.filter(hasRequiredPqcEnvelope).length
+    const requiredIntegrityCount = files.filter(hasRequiredIntegrityStack).length
+    const zeroKnowledgeEnvelopeCount = files.filter(hasZeroKnowledgeEnvelope).length
+    const missingEncryptionCount = Math.max(0, files.length - requiredEnvelopeCount)
+    const encryptedMissingIntegrityCount = Math.max(0, encryptedFileCount - requiredIntegrityCount)
+    const zeroKnowledgeRiskCount = Math.max(0, files.length - zeroKnowledgeEnvelopeCount)
     const activeShareCount = sharedLinks.filter((link) =>
       !link.is_revoked && !link.is_destroyed && (!link.expires_at || new Date(link.expires_at) > new Date())
     ).length
-    const quantumResistance = files.length === 0 ? 100 : Math.round((encryptedFileCount / files.length) * 100)
-    const zeroKnowledgeScore = zkKeys ? 100 : encryptedFileCount > 0 ? 96 : 90
-    const integrityScore = verifyResult ? (verifyResult.valid ? 100 : 0) : 100
+    const quantumResistance = files.length === 0 ? 0 : Math.round((requiredEnvelopeCount / files.length) * 100)
+    const zeroKnowledgeScore = files.length === 0 ? 0 : Math.round((zeroKnowledgeEnvelopeCount / files.length) * 100)
+    const integrityScore = encryptedFileCount === 0 ? 0 : Math.round((requiredIntegrityCount / encryptedFileCount) * 100)
+    const vaultBusy = uploading || !!encrypting || !!verifying || !!downloading || !!decrypting
+    const telemetryState = resolveTelemetryState({
+      fetchError,
+      sessionToken: session?.access_token,
+      realtimeConnected,
+      busy: vaultBusy,
+    })
+    const activityEvents = [...telemetryEvents, ...auditEvents]
+    const latestVaultActivity = latestIso([
+      ...telemetryEvents.map((event) => event.created_at),
+      ...auditEvents.map((event) => event.created_at),
+      ...files.map((file) => file.uploaded_at),
+      verifyResult?.verifiedAt,
+    ])
+    const latestEncryptionActivity = latestIso([
+      latestEventIso(activityEvents, ['encryption_completed', 'file_uploaded', 'file_upload_completed', 'key_wrapping_completed']),
+      ...files.filter(hasRequiredPqcEnvelope).map((file) => file.uploaded_at),
+    ])
+    const latestIntegrityActivity = latestIso([
+      verifyResult?.verifiedAt,
+      latestEventIso(activityEvents, ['file_integrity_verified', 'signature_verification_passed']),
+      ...files.filter(hasRequiredIntegrityStack).map((file) => file.uploaded_at),
+    ])
+    const latestArchitectureActivity = latestIso([
+      latestEventIso(activityEvents, ['vault_initialized', 'vault_health_updated']),
+      ...files.filter(hasZeroKnowledgeEnvelope).map((file) => file.uploaded_at),
+    ])
+    const encryptionFailure = recentFailedEvent(activityEvents, ['encryption_failed'])
+    const integrityFailure = Boolean(verifyResult && !verifyResult.valid) || recentFailedEvent(activityEvents, [
+      'signature_verification_failed',
+      'file_verification_failed',
+      'integrity_failed',
+    ])
+    const vaultHealthy = Boolean(session?.access_token && realtimeConnected && !fetchError)
+    const encryptionHealthy = files.length > 0 && missingEncryptionCount === 0 && !encryptionFailure
+    const integrityHealthy = encryptedFileCount > 0 && encryptedMissingIntegrityCount === 0 && !integrityFailure
+    const architectureHealthy = files.length > 0 && zeroKnowledgeRiskCount === 0 && (zeroKnowledgeEnvelopeCount > 0 || !!zkKeys)
     const recentActivity = [
       ...telemetryEvents.map((event) => event.message),
       ...auditEvents.map((event) => event.description),
@@ -830,12 +1034,70 @@ export default function VaultPage() {
       integrityScore,
       quantumResistance,
       zeroKnowledgeScore,
-      systemHealth: fetchError ? 'degraded' : session?.access_token ? 'optimal' : 'offline',
+      systemHealth: vaultHealthy && encryptionHealthy && integrityHealthy && architectureHealthy
+        ? 'optimal'
+        : session?.access_token
+          ? 'degraded'
+          : 'offline',
       telemetryConnected: realtimeConnected,
       recentActivity,
+      statusCards: {
+        vault: {
+          healthy: vaultHealthy,
+          state: vaultHealthy ? 'Secured' : fetchError ? 'Degraded' : 'Offline',
+          description: fetchError
+            ? fetchError
+            : realtimeConnected
+              ? 'Vault service online and live telemetry connected'
+              : 'Realtime channel not connected',
+          lastVerifiedAt: latestVaultActivity,
+          telemetry: telemetryState,
+        },
+        encryption: {
+          healthy: encryptionHealthy,
+          headline: 'ML-KEM-768',
+          state: encryptionHealthy ? 'Fully Applied' : files.length === 0 ? 'No Files Sealed' : 'Not Fully Applied',
+          description: encryptionHealthy
+            ? `${requiredEnvelopeCount}/${files.length} files use X25519 + ML-KEM-768 + AES-256-GCM`
+            : files.length === 0
+              ? 'No user files have been sealed yet'
+              : `${missingEncryptionCount} files missing required hybrid PQC envelope`,
+          lastVerifiedAt: latestEncryptionActivity,
+          telemetry: telemetryState,
+        },
+        integrity: {
+          healthy: integrityHealthy,
+          headline: 'ML-DSA-65',
+          state: integrityHealthy ? 'Verified' : integrityFailure ? 'Verification Failed' : 'Incomplete',
+          description: integrityFailure && verifyResult
+            ? `Latest verification failed for ${verifyResult.fileName}`
+            : integrityHealthy
+              ? `${requiredIntegrityCount}/${encryptedFileCount} encrypted files have ML-DSA-65, Ed25519, SHA3 metadata`
+              : encryptedFileCount === 0
+                ? 'No encrypted files available for integrity verification'
+                : `${encryptedMissingIntegrityCount} encrypted files missing signature or SHA3 metadata`,
+          lastVerifiedAt: latestIntegrityActivity,
+          telemetry: telemetryState,
+        },
+        architecture: {
+          healthy: architectureHealthy,
+          headline: 'ZERO-KNOWLEDGE',
+          state: architectureHealthy ? 'Zero-Knowledge' : 'Needs Review',
+          description: architectureHealthy
+            ? `${zeroKnowledgeEnvelopeCount}/${files.length} files use per-file keys with no server-side plaintext key`
+            : files.length === 0
+              ? 'Zero-knowledge posture will activate after the first sealed file'
+              : `${zeroKnowledgeRiskCount} files need zero-knowledge envelope review`,
+          lastVerifiedAt: latestArchitectureActivity,
+          telemetry: telemetryState,
+        },
+      },
     }
   }, [
     auditEvents,
+    decrypting,
+    downloading,
+    encrypting,
     fetchError,
     files,
     keys,
@@ -844,7 +1106,9 @@ export default function VaultPage() {
     session?.access_token,
     sharedLinks,
     telemetryEvents,
+    uploading,
     usedStorage,
+    verifying,
     verifyResult,
     zkKeys,
   ])

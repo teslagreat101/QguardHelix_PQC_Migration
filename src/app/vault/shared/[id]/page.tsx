@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { useParams } from 'next/navigation'
+import type { FormEvent } from 'react'
+import { useParams } from 'react-router-dom'
 
 // ─── Types ──────────────────────────────────────────────────
 
@@ -49,7 +50,7 @@ function getMimeIcon(mime: string): string {
 
 export default function SharedFilePage() {
   const params = useParams()
-  const linkId = params?.id as string
+  const linkId = params.id || ''
 
   const [state, setState] = useState<PageState>('loading')
   const [fileInfo, setFileInfo] = useState<SharedFileInfo | null>(null)
@@ -59,6 +60,7 @@ export default function SharedFilePage() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [remainingAttempts, setRemainingAttempts] = useState<number>(3)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [transportWarning, setTransportWarning] = useState('')
 
   // ── Security: extract key from URL fragment, then scrub it ──
   // The key lives in the hash ONLY until we capture it in memory.
@@ -68,6 +70,11 @@ export default function SharedFilePage() {
 
   useEffect(() => {
     if (typeof window === 'undefined') return
+    const isLocalhost = ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname)
+    if (window.location.protocol !== 'https:' && !isLocalhost) {
+      setTransportWarning('This share page is not using HTTPS. Do not enter passwords or decrypt files until the link is served over HTTPS.')
+    }
+
     const hash = window.location.hash
     if (!hash || hash.length < 2) return
 
@@ -89,6 +96,9 @@ export default function SharedFilePage() {
     try {
       const res = await fetch('/api/v1/vault/share/public', {
         method: 'POST',
+        cache: 'no-store',
+        credentials: 'omit',
+        referrerPolicy: 'no-referrer',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ linkId, passwordHash }),
       })
@@ -163,7 +173,7 @@ export default function SharedFilePage() {
   }, [linkId, fetchSharedFile])
 
   // Handle password submission
-  const handlePasswordSubmit = async (e: React.FormEvent) => {
+  const handlePasswordSubmit = async (e: FormEvent) => {
     e.preventDefault()
     if (!password || isSubmitting) return
 
@@ -184,12 +194,19 @@ export default function SharedFilePage() {
   // Decrypt the file
   const handleDecrypt = async () => {
     const shareKey = getShareKey()
-    if (!shareKey) {
+    if (!fileInfo) return
+
+    if (!fileInfo.isPasswordProtected && !shareKey) {
       setErrorMsg('Decryption key not found in URL. The link may be incomplete.')
       setState('error')
       return
     }
-    if (!fileInfo) return
+
+    if (fileInfo.isPasswordProtected && (!password || !fileInfo.passwordSalt)) {
+      setErrorMsg('Password verification is required before decryption.')
+      setState('password_required')
+      return
+    }
 
     setState('decrypting')
 
@@ -285,11 +302,28 @@ export default function SharedFilePage() {
         </div>
 
         {/* ── Loading ────────────────────────────────── */}
+        {transportWarning && (
+          <div style={{
+            padding: '10px 14px',
+            borderRadius: 8,
+            background: 'rgba(245, 158, 11, 0.08)',
+            border: '1px solid rgba(245, 158, 11, 0.28)',
+            color: 'var(--qg-amber, #f59e0b)',
+            fontSize: 12,
+            lineHeight: 1.5,
+            marginBottom: 18,
+          }}>
+            {transportWarning}
+          </div>
+        )}
+
         {state === 'loading' && (
           <div style={{ textAlign: 'center', padding: '40px 0' }}>
             <div style={{
               width: 40, height: 40, margin: '0 auto 16px',
-              border: '3px solid var(--qg-border, #1e293b)',
+              borderWidth: 3,
+              borderStyle: 'solid',
+              borderColor: 'var(--qg-border, #1e293b)',
               borderTopColor: 'var(--qg-cyan, #00d4ff)',
               borderRadius: '50%',
               animation: 'spin 1s linear infinite',
@@ -452,7 +486,9 @@ export default function SharedFilePage() {
           <div style={{ textAlign: 'center', padding: '40px 0' }}>
             <div style={{
               width: 48, height: 48, margin: '0 auto 16px',
-              border: '3px solid var(--qg-border, #1e293b)',
+              borderWidth: 3,
+              borderStyle: 'solid',
+              borderColor: 'var(--qg-border, #1e293b)',
               borderTopColor: 'var(--qg-cyan, #00d4ff)',
               borderRadius: '50%',
               animation: 'spin 1s linear infinite',

@@ -18,8 +18,12 @@ function fromHex(hex: string): Uint8Array {
   return new Uint8Array(matches.map((byte) => parseInt(byte, 16)))
 }
 
-function fromBase64(value: string): Uint8Array {
-  const binary = atob(value)
+function fromPayload(value: string): Uint8Array {
+  const normalized = value.trim().replace(/\s+/g, '')
+  if (normalized.startsWith('\\x')) return fromHex(normalized.slice(2))
+  if (/^[0-9a-f]+$/i.test(normalized) && normalized.length % 2 === 0) return fromHex(normalized)
+
+  const binary = atob(normalized)
   const bytes = new Uint8Array(binary.length)
   for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
   return bytes
@@ -87,14 +91,17 @@ export async function encryptForSharingWithPassword(fileData: Uint8Array, passwo
   const iv = window.crypto.getRandomValues(new Uint8Array(12))
   const aes = gcm(shareKey, iv)
   const encrypted = aes.encrypt(fileData)
+  const passwordHash = toHex(passwordHashBytes)
+
+  shareKey.fill(0)
+  passwordHashBytes.fill(0)
   
   return {
     encryptedPayload: toBase64(encrypted),
     iv: toHex(iv),
     integrityHash: toHex(sha3_256(fileData)),
-    shareKey: toHex(shareKey),
     passwordSalt: toHex(salt),
-    passwordHash: toHex(passwordHashBytes)
+    passwordHash
   }
 }
 
@@ -110,31 +117,36 @@ export async function decryptSharedFile(
   integrityHash?: string,
 ): Promise<Uint8Array> {
   const key = fromHex(shareKey)
-  const decrypted = gcm(key, fromHex(iv)).decrypt(fromBase64(encryptedPayload))
-  verifyIntegrity(decrypted, integrityHash)
-  return decrypted
+  try {
+    const decrypted = gcm(key, fromHex(iv)).decrypt(fromPayload(encryptedPayload))
+    verifyIntegrity(decrypted, integrityHash)
+    return decrypted
+  } finally {
+    key.fill(0)
+  }
 }
 
 export async function decryptSharedFileWithPassword(
   encryptedPayload: string,
   iv: string,
-  shareKey: string,
+  shareKey: string | null | undefined,
   password: string,
   passwordSalt: string,
   integrityHash?: string,
 ): Promise<Uint8Array> {
   const localKey = await deriveShareKey(password, fromHex(passwordSalt))
-  const fragmentKey = fromHex(shareKey)
+  const fragmentKey = shareKey ? fromHex(shareKey) : null
 
-  if (fragmentKey.length && toHex(fragmentKey) !== toHex(localKey)) {
-    fragmentKey.fill(0)
+  try {
+    if (fragmentKey?.length && toHex(fragmentKey) !== toHex(localKey)) {
+      throw new Error('SHARE_KEY_PASSWORD_MISMATCH')
+    }
+
+    const decrypted = gcm(localKey, fromHex(iv)).decrypt(fromPayload(encryptedPayload))
+    verifyIntegrity(decrypted, integrityHash)
+    return decrypted
+  } finally {
+    fragmentKey?.fill(0)
     localKey.fill(0)
-    throw new Error('SHARE_KEY_PASSWORD_MISMATCH')
   }
-
-  const decrypted = gcm(localKey, fromHex(iv)).decrypt(fromBase64(encryptedPayload))
-  verifyIntegrity(decrypted, integrityHash)
-  fragmentKey.fill(0)
-  localKey.fill(0)
-  return decrypted
 }

@@ -426,7 +426,14 @@ export async function executeWebScan(
             }
           }
         }
-        moduleComplete('certificate-parser', 'Certificate Chain Audit', target, 44, findings.length - certFindingStart, certInfo ? null : 'No certificate was available from TLS handshake')
+        moduleComplete(
+          'certificate-parser',
+          'Certificate Chain Audit',
+          target,
+          44,
+          findings.length - certFindingStart,
+          certInfo ? null : 'Skipped: certificate metadata unavailable because the TLS handshake did not return a peer certificate'
+        )
         phaseComplete('cert-analysis', 'Certificate Inspection Complete', 45)
 
         // ─── Phase 5: Cipher Suite Enumeration ────────────────────────
@@ -456,7 +463,14 @@ export async function executeWebScan(
             })
           }
         }
-        moduleComplete('cipher-suite-analyzer', 'Cipher Suite Enumeration', target, 54, findings.length - cipherFindingStart, tlsResult ? null : 'TLS result unavailable')
+        moduleComplete(
+          'cipher-suite-analyzer',
+          'Cipher Suite Enumeration',
+          target,
+          54,
+          findings.length - cipherFindingStart,
+          tlsResult ? null : 'Skipped: cipher suite enumeration requires a completed TLS handshake'
+        )
         phaseComplete('cipher-enum', 'Cipher Suite Analysis Complete', 55)
 
         // ─── Phase 6: Security Header & API Analysis ──────────────────
@@ -503,8 +517,15 @@ export async function executeWebScan(
             })
           }
           moduleComplete('api-security-scanner', 'Security Header & API Scanner', hostname, 64, findings.length - apiFindingStart, apiAttempt.error)
-        } catch {
-          moduleComplete('api-security-scanner', 'Security Header & API Scanner', hostname, 64, findings.length - apiFindingStart, 'API/header scan failed')
+        } catch (err) {
+          moduleComplete(
+            'api-security-scanner',
+            'Security Header & API Scanner',
+            hostname,
+            64,
+            findings.length - apiFindingStart,
+            `Skipped: API/header scan unavailable (${(err as Error).message || 'request failed'})`
+          )
           // API scan failed — non-critical, continue
         }
         phaseComplete('header-inspection', 'Header & API Analysis Complete', 65)

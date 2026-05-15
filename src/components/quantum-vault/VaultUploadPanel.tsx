@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react'
 import type { DragEvent } from 'react'
-import { motion } from 'framer-motion'
+import { createPortal } from 'react-dom'
+import { AnimatePresence, motion } from 'framer-motion'
 import EncryptionProgress from './EncryptionProgress'
 import {
   createVaultFolder,
@@ -26,6 +27,12 @@ interface VaultUploadPanelProps {
   onClose: () => void
 }
 
+interface PendingFolderUpload {
+  files: File[]
+  rootName: string
+  totalSize: number
+}
+
 function formatSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`
   if (bytes < 1048576) return `${(bytes / 1024).toFixed(1)} KB`
@@ -34,6 +41,12 @@ function formatSize(bytes: number): string {
 
 function relativePath(file: File): string {
   return file.webkitRelativePath || file.name
+}
+
+function folderRootName(files: File[]): string {
+  const firstPath = files[0] ? relativePath(files[0]) : ''
+  const root = firstPath.split('/').filter(Boolean)[0]
+  return root || 'Selected Folder'
 }
 
 export default function VaultUploadPanel({
@@ -45,6 +58,7 @@ export default function VaultUploadPanel({
   onClose,
 }: VaultUploadPanelProps) {
   const [file, setFile] = useState<File | null>(null)
+  const [pendingFolder, setPendingFolder] = useState<PendingFolderUpload | null>(null)
   const [encStage, setEncStage] = useState<EncryptionStage>({ stage: 'idle', percent: 0, message: '' })
   const [dragOver, setDragOver] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -146,11 +160,29 @@ export default function VaultUploadPanel({
     }
   }
 
-  const handleFolderSelect = async (fileList: FileList | null) => {
+  const handleFolderSelect = (fileList: FileList | null) => {
     const selected = Array.from(fileList || [])
     if (selected.length === 0) return
 
     setFile(null)
+    setEncStage({ stage: 'idle', percent: 0, message: '' })
+    setPendingFolder({
+      files: selected,
+      rootName: folderRootName(selected),
+      totalSize: selected.reduce((sum, item) => sum + item.size, 0),
+    })
+  }
+
+  const handleCancelFolderUpload = () => {
+    setPendingFolder(null)
+    if (folderInputRef.current) folderInputRef.current.value = ''
+  }
+
+  const handleConfirmFolderUpload = async () => {
+    const selected = pendingFolder?.files || []
+    if (selected.length === 0) return
+
+    setPendingFolder(null)
     setEncStage({ stage: 'encrypting', percent: 3, message: `Preparing encrypted folder upload (${selected.length} files)...` })
 
     try {
@@ -237,7 +269,176 @@ export default function VaultUploadPanel({
         </p>
       </div>
 
-      {!file && !isEncrypted && (
+      {typeof document !== 'undefined' && createPortal(
+      <AnimatePresence>
+        {pendingFolder && (
+          <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="qv-folder-confirm-title"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 10020,
+              display: 'grid',
+              placeItems: 'center',
+              padding: 18,
+              background: 'rgba(0,0,0,0.72)',
+              backdropFilter: 'blur(10px)',
+            }}
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 18, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 10, scale: 0.98 }}
+              transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+              style={{
+                width: 'min(560px, 100%)',
+                border: '1px solid rgba(255,214,104,0.48)',
+                borderRadius: 16,
+                background:
+                  'linear-gradient(145deg, rgba(20,16,4,0.98), rgba(0,0,0,0.96) 58%, rgba(37,25,0,0.98))',
+                boxShadow: '0 28px 90px rgba(0,0,0,0.65), 0 0 46px rgba(212,175,55,0.16), inset 0 0 38px rgba(212,175,55,0.08)',
+                overflow: 'hidden',
+              }}
+            >
+              <div style={{
+                padding: '18px 22px',
+                borderBottom: '1px solid rgba(212,175,55,0.18)',
+                background:
+                  'linear-gradient(90deg, rgba(212,175,55,0.12), rgba(212,175,55,0.02), rgba(212,175,55,0.1))',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 14,
+              }}>
+                <div style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: 12,
+                  display: 'grid',
+                  placeItems: 'center',
+                  color: '#fff3c1',
+                  border: '1px solid rgba(255,214,104,0.35)',
+                  background: 'rgba(212,175,55,0.1)',
+                  boxShadow: '0 0 22px rgba(212,175,55,0.2)',
+                  fontFamily: 'var(--font-mono)',
+                  fontWeight: 800,
+                  fontSize: 13,
+                }}>
+                  ZK
+                </div>
+                <div style={{ minWidth: 0 }}>
+                  <div id="qv-folder-confirm-title" style={{
+                    color: '#fff3c1',
+                    fontFamily: 'var(--font-display)',
+                    fontSize: 18,
+                    fontWeight: 800,
+                    letterSpacing: '0.04em',
+                  }}>
+                    Encrypt {pendingFolder.files.length} files from this folder?
+                  </div>
+                  <div style={{
+                    marginTop: 4,
+                    color: 'rgba(255,255,255,0.58)',
+                    fontSize: 12,
+                    fontFamily: 'var(--font-mono)',
+                  }}>
+                    {pendingFolder.rootName} / {formatSize(pendingFolder.totalSize)}
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ padding: '20px 22px 18px' }}>
+                <p style={{ margin: '0 0 14px', color: 'rgba(255,255,255,0.74)', fontSize: 13, lineHeight: 1.6 }}>
+                  QGuard will read this folder locally, encrypt every file independently, then upload only sealed ciphertext to your vault.
+                </p>
+
+                <div style={{
+                  display: 'grid',
+                  gap: 9,
+                  padding: 14,
+                  borderRadius: 12,
+                  background: 'rgba(0,0,0,0.34)',
+                  border: '1px solid rgba(212,175,55,0.16)',
+                  marginBottom: 16,
+                }}>
+                  {[
+                    'Per-file AES-256-GCM data keys',
+                    'X25519 + ML-KEM-768 hybrid key wrapping',
+                    'ML-DSA-65 + Ed25519 signature verification metadata',
+                    'HKDF-SHA3-256 and SHA3 integrity context',
+                  ].map((item) => (
+                    <div key={item} style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 9,
+                      color: '#ffd76a',
+                      fontSize: 11,
+                      fontFamily: 'var(--font-mono)',
+                      letterSpacing: '0.02em',
+                    }}>
+                      <span style={{
+                        width: 6,
+                        height: 6,
+                        borderRadius: '50%',
+                        background: '#d4af37',
+                        boxShadow: '0 0 8px rgba(212,175,55,0.8)',
+                        flex: '0 0 auto',
+                      }} />
+                      {item}
+                    </div>
+                  ))}
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, flexWrap: 'wrap' }}>
+                  <button
+                    type="button"
+                    onClick={handleCancelFolderUpload}
+                    style={{
+                      padding: '10px 18px',
+                      borderRadius: 10,
+                      border: '1px solid rgba(255,255,255,0.16)',
+                      background: 'rgba(255,255,255,0.04)',
+                      color: 'rgba(255,255,255,0.82)',
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: 12,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void handleConfirmFolderUpload()}
+                    style={{
+                      padding: '10px 20px',
+                      borderRadius: 10,
+                      border: '1px solid rgba(255,214,104,0.55)',
+                      background: 'linear-gradient(135deg, rgba(212,175,55,0.92), rgba(119,78,0,0.96))',
+                      color: '#120b00',
+                      fontFamily: 'var(--font-mono)',
+                      fontWeight: 900,
+                      fontSize: 12,
+                      letterSpacing: '0.06em',
+                      cursor: 'pointer',
+                      boxShadow: '0 0 22px rgba(212,175,55,0.24)',
+                    }}
+                  >
+                    Encrypt Folder
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>,
+      document.body,
+      )}
+
+      {!file && !isEncrypted && !isBusy && !pendingFolder && (
         <motion.div
           onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
           onDragLeave={() => setDragOver(false)}
@@ -268,7 +469,7 @@ export default function VaultUploadPanel({
               type="button"
               onClick={(e) => {
                 e.stopPropagation()
-                inputRef.current?.click()
+                if (!isBusy) inputRef.current?.click()
               }}
               style={{
                 display: 'inline-flex',
@@ -281,7 +482,7 @@ export default function VaultUploadPanel({
                 fontSize: 12,
                 color: 'var(--qg-cyan)',
                 fontFamily: 'var(--font-mono)',
-                cursor: 'pointer',
+                cursor: isBusy ? 'wait' : 'pointer',
               }}
             >
               Choose File
@@ -290,7 +491,7 @@ export default function VaultUploadPanel({
               type="button"
               onClick={(e) => {
                 e.stopPropagation()
-                folderInputRef.current?.click()
+                if (!isBusy) folderInputRef.current?.click()
               }}
               style={{
                 display: 'inline-flex',
@@ -303,7 +504,7 @@ export default function VaultUploadPanel({
                 fontSize: 12,
                 color: 'rgba(255,255,255,0.84)',
                 fontFamily: 'var(--font-mono)',
-                cursor: 'pointer',
+                cursor: isBusy ? 'wait' : 'pointer',
               }}
             >
               Choose Folder

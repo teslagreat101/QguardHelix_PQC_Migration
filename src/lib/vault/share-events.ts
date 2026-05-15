@@ -9,7 +9,11 @@ export interface ShareSecurityEvent {
   type: 'failed_attempt' | 'link_destroyed'
   linkId: string
   ownerId: string
+  fileName?: string
   filename?: string
+  attemptsUsed?: number
+  remainingAttempts?: number
+  ip?: string
   ipAddress?: string
   userAgent?: string
   timestamp: string
@@ -44,3 +48,5 @@ export function subscribeOwnerEvents(ownerId: string, callback: (event: ShareSec
 export function emitShareEvent(event: ShareSecurityEvent) {
   shareEmitter.emit('share_event', event)
 }
+
+export const emitShareLinkEvent = emitShareEvent

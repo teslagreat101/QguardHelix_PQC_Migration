@@ -47,6 +47,18 @@ function isPrivateIp(ip: string): boolean {
   return PRIVATE_IP_RANGES.some(pattern => pattern.test(ip))
 }
 
+function lookupAll(hostname: string): Promise<string[]> {
+  return new Promise((resolve, reject) => {
+    dns.lookup(hostname, { all: true, verbatim: false }, (err, addresses) => {
+      if (err) {
+        reject(err)
+        return
+      }
+      resolve(addresses.map((address) => address.address))
+    })
+  })
+}
+
 /**
  * Extract hostname and port from various target formats
  */
@@ -94,25 +106,40 @@ async function resolveAndValidate(hostname: string): Promise<string> {
     return hostname
   }
 
-  // Resolve hostname
+  // Resolve hostname. Prefer authoritative A records, but fall back to OS
+  // lookup because some local Windows DNS/proxy setups reject queryA while
+  // normal socket connections can still resolve the host.
+  const resolutionErrors: string[] = []
+  let addresses: string[] = []
+
   try {
-    const addresses = await dnsResolve4(hostname)
-    if (!addresses || addresses.length === 0) {
-      throw new Error(`DNS resolution failed for ${hostname}`)
-    }
-
-    // Validate resolved IPs
-    for (const ip of addresses) {
-      if (isPrivateIp(ip)) {
-        throw new Error(`SSRF protection: ${hostname} resolves to private IP`)
-      }
-    }
-
-    return addresses[0]
+    addresses = await dnsResolve4(hostname)
   } catch (err) {
     if ((err as Error).message?.includes('SSRF')) throw err
-    throw new Error(`DNS resolution failed for ${hostname}: ${(err as Error).message}`)
+    resolutionErrors.push((err as Error).message)
   }
+
+  if (!addresses.length) {
+    try {
+      addresses = await lookupAll(hostname)
+    } catch (err) {
+      resolutionErrors.push((err as Error).message)
+    }
+  }
+
+  if (!addresses.length) {
+    const detail = resolutionErrors.filter(Boolean).join('; ') || 'no DNS records returned'
+    throw new Error(`DNS resolution failed for ${hostname}: ${detail}`)
+  }
+
+  // Validate resolved IPs
+  for (const ip of addresses) {
+    if (isPrivateIp(ip)) {
+      throw new Error(`SSRF protection: ${hostname} resolves to private IP`)
+    }
+  }
+
+  return addresses[0]
 }
 
 function normalizeCipherName(cipher: tls.CipherNameAndProtocol | null): string {

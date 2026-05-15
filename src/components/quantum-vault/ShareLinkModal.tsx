@@ -35,6 +35,19 @@ const MAX_DOWNLOAD_OPTIONS = [
   { label: '25 downloads', value: 25 },
 ]
 
+const MIN_SHARE_PASSWORD_LENGTH = 12
+
+function isSharePasswordStrong(value: string): boolean {
+  if (value.length < MIN_SHARE_PASSWORD_LENGTH) return false
+  const classes = [
+    /[a-z]/.test(value),
+    /[A-Z]/.test(value),
+    /\d/.test(value),
+    /[^A-Za-z0-9]/.test(value),
+  ].filter(Boolean).length
+  return classes >= 3
+}
+
 export default function ShareLinkModal({
   fileId,
   fileName,
@@ -58,24 +71,32 @@ export default function ShareLinkModal({
   if (!isOpen) return null
 
   const handleCreate = async () => {
-    setStep('encrypting')
     setErrorMsg('')
+    const isPasswordProtected = usePassword && password.length > 0
+
+    if (usePassword && !isSharePasswordStrong(password)) {
+      setErrorMsg(`Use at least ${MIN_SHARE_PASSWORD_LENGTH} characters with 3 character types for password-protected shares.`)
+      return
+    }
+
+    setStep('encrypting')
+    let fileData: Uint8Array | null = null
 
     try {
       // 1. Get plaintext file data
-      const fileData = await getFileData()
+      fileData = await getFileData()
 
       // 2. Encrypt client-side for sharing (dynamic import to keep bundle lean)
       let result: {
         encryptedPayload: string
         iv: string
         integrityHash: string
-        shareKey: string
+        shareKey?: string
         passwordSalt?: string
         passwordHash?: string
       }
 
-      if (usePassword && password.length > 0) {
+      if (isPasswordProtected) {
         const { encryptForSharingWithPassword } = await import('@/lib/vault/sharing-crypto')
         result = await encryptForSharingWithPassword(fileData, password)
       } else {
@@ -95,17 +116,25 @@ export default function ShareLinkModal({
         encryptionMetadata: {
           iv: result.iv,
           integrityHash: result.integrityHash,
+          encryptedPayload: result.encryptedPayload,
+          passwordSalt: result.passwordSalt,
         },
-        isPasswordProtected: usePassword && password.length > 0,
+        isPasswordProtected,
         passwordHash: result.passwordHash,
         maxDownloads: maxDownloads ?? undefined,
         expiresAt,
         isOneTime: maxDownloads === 1,
       })
 
-      // 4. Build the share link with key in fragment
+      // 4. Build the share link. Password-protected links do not carry the
+      // decryption key; the recipient derives it locally from the password.
       const origin = window.location.origin
-      const link = `${origin}/vault/shared/${created.id}#${result.shareKey}`
+      if (!isPasswordProtected && !result.shareKey) {
+        throw new Error('Share key generation failed. Please try again.')
+      }
+      const link = isPasswordProtected
+        ? `${origin}/vault/shared/${created.id}`
+        : `${origin}/vault/shared/${created.id}#${result.shareKey}`
 
       setShareLink(link)
       setStep('done')
@@ -114,6 +143,8 @@ export default function ShareLinkModal({
       console.error('Share creation failed:', err)
       setErrorMsg((err as Error).message || 'Failed to create share link')
       setStep('error')
+    } finally {
+      fileData?.fill(0)
     }
   }
 
@@ -183,10 +214,9 @@ export default function ShareLinkModal({
               background: 'rgba(16, 185, 129, 0.08)', border: '1px solid rgba(16, 185, 129, 0.2)',
               marginBottom: 20, fontSize: 12, color: 'var(--qg-green, #10b981)',
             }}>
-              🔐 Zero-Knowledge Encryption: The file is encrypted entirely in your browser using
-              AES-256-GCM. The decryption key is embedded in the link fragment (#) and is never
-              transmitted to our servers. However, anyone with the full link can decrypt the file
-              — share it only through secure channels (e.g., encrypted messaging).
+              {usePassword
+                ? 'Password-protected sharing: the file is encrypted in your browser with AES-256-GCM using a key derived from the password. The generated link will not contain the file decryption key.'
+                : 'Zero-knowledge link sharing: the file is encrypted in your browser with AES-256-GCM. The decryption key is placed in the URL fragment (#) and is never sent to the server.'}
             </div>
 
             {/* Expiration */}
@@ -244,26 +274,49 @@ export default function ShareLinkModal({
                 Password Protection (requires both link + password)
               </label>
               {usePassword && (
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter a password for this share link"
-                  style={{
-                    width: '100%', padding: '8px 12px', fontSize: 13,
-                    background: 'var(--qg-bg, #010409)', color: 'var(--qg-text, #e6edf3)',
-                    border: '1px solid var(--qg-border, #1e293b)', borderRadius: 'var(--radius-md, 8px)',
-                  }}
-                />
+                <>
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => { setPassword(e.target.value); setErrorMsg('') }}
+                    placeholder={`Enter at least ${MIN_SHARE_PASSWORD_LENGTH} characters`}
+                    style={{
+                      width: '100%', padding: '8px 12px', fontSize: 13,
+                      background: 'var(--qg-bg, #010409)', color: 'var(--qg-text, #e6edf3)',
+                      border: `1px solid ${password && !isSharePasswordStrong(password) ? 'rgba(245,158,11,0.55)' : 'var(--qg-border, #1e293b)'}`,
+                      borderRadius: 'var(--radius-md, 8px)',
+                    }}
+                  />
+                  <div style={{ marginTop: 6, fontSize: 11, color: 'var(--qg-text-muted)' }}>
+                    Use at least {MIN_SHARE_PASSWORD_LENGTH} characters with 3 character types. Send it through a separate trusted channel.
+                  </div>
+                </>
               )}
             </div>
+
+            {errorMsg && (
+              <div style={{
+                padding: '8px 12px',
+                borderRadius: 'var(--radius-md, 8px)',
+                background: 'rgba(245,158,11,0.08)',
+                border: '1px solid rgba(245,158,11,0.3)',
+                color: 'var(--qg-amber, #f59e0b)',
+                fontSize: 12,
+                marginBottom: 14,
+              }}>
+                {errorMsg}
+              </div>
+            )}
 
             {/* Create button */}
             <button
               className="q-btn q-btn-primary"
               style={{ width: '100%', padding: '10px 20px', fontSize: 13 }}
               onClick={handleCreate}
-              disabled={usePassword && password.length === 0}
+              aria-disabled={usePassword && !isSharePasswordStrong(password)}
+              title={usePassword && !isSharePasswordStrong(password)
+                ? `Use at least ${MIN_SHARE_PASSWORD_LENGTH} characters with 3 character types.`
+                : 'Encrypt and generate secure share link'}
             >
               🔐 Encrypt & Generate Share Link
             </button>
@@ -275,7 +328,9 @@ export default function ShareLinkModal({
           <div style={{ textAlign: 'center', padding: '30px 0' }}>
             <div style={{
               width: 48, height: 48, margin: '0 auto 16px',
-              border: '3px solid var(--qg-border, #1e293b)',
+              borderWidth: 3,
+              borderStyle: 'solid',
+              borderColor: 'var(--qg-border, #1e293b)',
               borderTopColor: 'var(--qg-cyan, #d4af37)',
               borderRadius: '50%',
               animation: 'spin 1s linear infinite',
@@ -298,9 +353,9 @@ export default function ShareLinkModal({
               background: 'rgba(16, 185, 129, 0.08)', border: '1px solid rgba(16, 185, 129, 0.2)',
               marginBottom: 16, fontSize: 12, color: 'var(--qg-green, #10b981)',
             }}>
-              Secure share link created. The decryption key is in the link fragment (#)
-              and is never stored on or transmitted to our servers. Share this link only
-              through trusted, secure channels.
+              {usePassword
+                ? 'Password-protected share created. The recipient needs this link and the password; the file decryption key is derived locally in their browser and is not embedded in the URL.'
+                : 'Secure share link created. The decryption key is in the link fragment (#) and is never stored on or transmitted to our servers. Share this link only through trusted, secure channels.'}
             </div>
 
             {/* Share link display */}
@@ -331,7 +386,9 @@ export default function ShareLinkModal({
                 {usePassword ? ' · Password protected' : ''}
               </div>
               <div style={{ marginTop: 4, color: 'var(--qg-amber, #f59e0b)' }}>
-                Anyone with this link can decrypt the file. Share it securely.
+                {usePassword
+                  ? 'Send the password separately. Anyone without the password cannot decrypt this file.'
+                  : 'Anyone with the full link can decrypt the file. Share it securely.'}
               </div>
             </div>
           </div>

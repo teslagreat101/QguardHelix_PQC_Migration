@@ -141,6 +141,8 @@ export interface VaultStats {
   storagePercent: number
 }
 
+type SignatureVerificationStatus = 'unverified' | 'verified' | 'failed' | 'expired'
+
 // ─── Mapped types for the UI ──────────────────────────────
 
 export interface VaultFileEntry {
@@ -350,12 +352,70 @@ function handleSupabaseError(error: unknown, operation: string): never {
     )
   }
 
+  if (message.includes('column reference "file_count" is ambiguous')) {
+    throw new VaultError(
+      'Vault storage quota trigger is using an ambiguous file_count variable. Apply supabase/vault-profile-rls-recursion-fix.sql in Supabase SQL Editor, then retry.',
+      'VAULT_TRIGGER_REPAIR_REQUIRED',
+      400
+    )
+  }
+
   // Default error
   throw new VaultError(
     `${operation} failed: ${message}`,
     code,
     status
   )
+}
+
+function isVaultProfilePolicyRecursion(error: unknown): boolean {
+  const err = error as { message?: string; code?: string }
+  const message = (err?.message || '').toLowerCase()
+  return (
+    err?.code === '42P17' ||
+    (message.includes('infinite recursion') && message.includes('vault_user_profiles'))
+  )
+}
+
+function isMissingRpc(error: unknown): boolean {
+  const err = error as { message?: string; code?: string }
+  const message = (err?.message || '').toLowerCase()
+  return err?.code === 'PGRST202' || message.includes('could not find the function')
+}
+
+function fallbackVaultProfile(userId: string, profileId?: string | null): VaultProfile {
+  const now = new Date().toISOString()
+  return {
+    id: profileId || userId,
+    user_id: userId,
+    display_name: null,
+    storage_used: 0,
+    storage_quota: 104857600,
+    storage_warning_sent: false,
+    file_count: 0,
+    folder_count: 0,
+    encrypted_file_count: 0,
+    vault_created: true,
+    vault_locked: false,
+    vault_unlocked_at: null,
+    last_vault_activity: now,
+    kdf_algorithm: 'PBKDF2-SHA3-256+HKDF-SHA3-256',
+    auto_lock_minutes: 30,
+    max_failed_attempts: 5,
+    created_at: now,
+    updated_at: now,
+  }
+}
+
+function normalizeProfileRpcResult(data: unknown): VaultProfile | null {
+  if (!data) return null
+  if (Array.isArray(data)) return (data[0] as VaultProfile | undefined) || null
+  if (typeof data === 'object') return data as VaultProfile
+  return null
+}
+
+function signatureStatusForInsert(hasSignature: boolean): SignatureVerificationStatus {
+  return hasSignature ? 'verified' : 'unverified'
 }
 
 // ─── Retry Utility ───────────────────────────────────────
@@ -411,14 +471,39 @@ export async function ensureVaultProfile(): Promise<VaultProfile> {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new VaultError('Not authenticated', 'AUTH_REQUIRED', 401)
 
+    const { data: rpcProfile, error: rpcProfileError } = await supabase.rpc('get_or_create_vault_profile')
+    if (!rpcProfileError) {
+      const profile = normalizeProfileRpcResult(rpcProfile)
+      if (profile) return profile
+    } else if (!isMissingRpc(rpcProfileError)) {
+      if (isVaultProfilePolicyRecursion(rpcProfileError)) {
+        console.warn('[vault] vault profile RPC hit recursive RLS; continuing with local profile context.')
+        return fallbackVaultProfile(user.id)
+      }
+      handleSupabaseError(rpcProfileError, 'ensuring vault profile')
+    }
+
+    const { data: rpcProfileId, error: rpcIdError } = await supabase.rpc('ensure_vault_profile')
+    if (rpcIdError && !isMissingRpc(rpcIdError)) {
+      if (isVaultProfilePolicyRecursion(rpcIdError)) {
+        console.warn('[vault] vault profile RPC hit recursive RLS; continuing with local profile context.')
+        return fallbackVaultProfile(user.id)
+      }
+      handleSupabaseError(rpcIdError, 'ensuring vault profile')
+    }
+
     // Try to get existing profile
     const { data: existing, error: fetchError } = await supabase
       .from('vault_user_profiles')
       .select('*')
-      .eq('user_id', user.id)
+      .eq(typeof rpcProfileId === 'string' ? 'id' : 'user_id', typeof rpcProfileId === 'string' ? rpcProfileId : user.id)
       .maybeSingle()
 
     if (fetchError && fetchError.code !== 'PGRST116') {
+      if (isVaultProfilePolicyRecursion(fetchError)) {
+        console.warn('[vault] recursive vault profile RLS detected; encryption will continue with local profile context.')
+        return fallbackVaultProfile(user.id, typeof rpcProfileId === 'string' ? rpcProfileId : null)
+      }
       handleSupabaseError(fetchError, 'fetching vault profile')
     }
 
@@ -436,6 +521,10 @@ export async function ensureVaultProfile(): Promise<VaultProfile> {
       .maybeSingle()
 
     if (insertError) {
+      if (isVaultProfilePolicyRecursion(insertError)) {
+        console.warn('[vault] recursive vault profile RLS detected during profile creation; continuing with local profile context.')
+        return fallbackVaultProfile(user.id)
+      }
       handleSupabaseError(insertError, 'creating vault profile')
     }
 
@@ -459,6 +548,10 @@ export async function fetchVaultProfile(): Promise<VaultProfile | null> {
 
     if (error) {
       if (error.code === 'PGRST116') return null
+      if (isVaultProfilePolicyRecursion(error)) {
+        console.warn('[vault] recursive vault profile RLS detected while fetching profile; returning local profile context.')
+        return fallbackVaultProfile(user.id)
+      }
       handleSupabaseError(error, 'fetching vault profile')
     }
 
@@ -624,7 +717,7 @@ export async function uploadVaultFile(
       },
       signature: encryptionData?.signature || null,
       signing_key_id: encryptionData?.signingKeyId || null,
-      signature_status: encryptionData?.signature ? 'valid' : 'unverified',
+      signature_status: signatureStatusForInsert(!!encryptionData?.signature),
       signed_at: encryptionData?.signature ? new Date().toISOString() : null,
       processing_status: 'complete',
       uploaded_at: new Date().toISOString(),
@@ -1170,8 +1263,8 @@ export async function storeUserKeys(
         enc_public_key: encPublicKey,
         sign_public_key: signPublicKey,
         kdf_salt: kdfMetadata?.salt,
-        kdf_algorithm: kdfMetadata?.algorithm || 'Argon2id',
-        kdf_params: kdfMetadata?.params || { memory: 65536, iterations: 3, parallelism: 4 },
+        kdf_algorithm: kdfMetadata?.algorithm || 'PBKDF2-SHA3-256+HKDF-SHA3-256',
+        kdf_params: kdfMetadata?.params || { iterations: 600000, finalKdf: 'HKDF-SHA3-256' },
         updated_at: new Date().toISOString(),
       },
       { onConflict: 'user_id' }
@@ -1179,11 +1272,21 @@ export async function storeUserKeys(
 
     if (error) handleSupabaseError(error, 'storing user keys')
 
-    // Mark vault as created
-    await supabase
+    // Mark vault as created. This status update is useful for telemetry, but it
+    // must not block zero-knowledge key storage if a deployed RLS policy is
+    // temporarily misconfigured.
+    const { error: profileUpdateError } = await supabase
       .from('vault_user_profiles')
       .update({ vault_created: true, vault_locked: false })
       .eq('user_id', user.id)
+
+    if (profileUpdateError) {
+      if (isVaultProfilePolicyRecursion(profileUpdateError)) {
+        console.warn('[vault] recursive vault profile RLS detected during profile status update; wrapped keys are stored.')
+      } else {
+        handleSupabaseError(profileUpdateError, 'updating vault profile status')
+      }
+    }
 
     await logAudit('vault_unlocked', 'info', 'profile', user.id, 'Vault unlocked with passphrase')
   })

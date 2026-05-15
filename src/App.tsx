@@ -31,6 +31,7 @@ import TokenizePage from './app/dashboard/tokenize/page';
 import CommPage from './app/dashboard/comm/page';
 import CloudPage from './app/dashboard/cloud/page';
 import VaultPage from './app/dashboard/vault/page';
+import SharedFilePage from './app/vault/shared/[id]/page';
 import QuantumGovernancePage from './app/dashboard/quantum-governance/page';
 import QuantumQrngPage from './app/dashboard/qrng/page';
 
@@ -46,6 +47,7 @@ export default function App() {
         <Route path="/authentication/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/authentication/register" element={<RegisterPage />} />
+        <Route path="/vault/shared/:id" element={<SharedFilePage />} />
         <Route path="/dashboard" element={<DashboardLayout />}>
           <Route index element={<DashboardPage />} />
           <Route path="dashboard_overview" element={<DashboardOverview />} />

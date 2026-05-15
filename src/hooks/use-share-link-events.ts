@@ -23,22 +23,37 @@ export function useShareLinkEvents() {
   useEffect(() => {
     if (!session?.access_token) return
 
-    // SSE endpoint for share events
-    const url = `/api/v1/vault/share/events?token=${session.access_token}`
+    let connected = false
+    const url = `/api/v1/vault/share/events?token=${encodeURIComponent(session.access_token)}`
     const eventSource = new EventSource(url)
 
-    eventSource.addEventListener('security_alert', (event: MessageEvent) => {
+    const handleSecurityEvent = (event: MessageEvent) => {
       try {
         const data = JSON.parse(event.data) as ShareLinkSecurityEvent
         setEvents((prev) => [data, ...prev])
       } catch (err) {
         console.error('Failed to parse share security event:', err)
       }
+    }
+
+    eventSource.addEventListener('connected', () => {
+      connected = true
     })
+    eventSource.addEventListener('security_alert', handleSecurityEvent)
+    eventSource.addEventListener('failed_attempt', handleSecurityEvent)
+    eventSource.addEventListener('link_destroyed', handleSecurityEvent)
 
     eventSource.onerror = (err) => {
-      console.error('Share security event stream error:', err)
-      // EventSource will automatically retry by default
+      if (!connected) {
+        if (import.meta.env.DEV) {
+          console.debug('Share security event stream unavailable; continuing without share alerts.', err)
+        }
+        eventSource.close()
+        return
+      }
+      if (import.meta.env.DEV) {
+        console.debug('Share security event stream interrupted; browser will retry.', err)
+      }
     }
 
     return () => {

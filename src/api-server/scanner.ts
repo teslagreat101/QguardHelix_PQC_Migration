@@ -1495,11 +1495,12 @@ router.get('/stream', async (req, res) => {
                   : findingCount === 0
                     ? 'No findings'
                     : 'Completed'
+              const moduleError = moduleStatus === 'Failed' ? errorText : null
               updateModule(canonicalModuleId, {
                 status: moduleStatus,
                 target: target.normalized,
                 findingsCount: findingCount,
-                error: errorText,
+                error: moduleError,
               }, `${SCANNER_MODULE_CATALOG.find((module) => module.id === canonicalModuleId)?.name || event.moduleName}: ${moduleStatus}`)
             }
             const normalizedFinding = event.finding ? normalizeWebFinding(event.finding as WebScanFinding, { certificateInfo: null } as WebScanCompleteResult) : undefined
