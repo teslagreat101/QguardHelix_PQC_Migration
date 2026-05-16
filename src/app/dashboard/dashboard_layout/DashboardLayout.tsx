@@ -89,7 +89,7 @@ export default function DashboardLayout() {
 
   if (loading) {
     return (
-      <div className="grid min-h-screen place-items-center bg-black text-gold">
+      <div className="grid min-h-screen place-items-center bg-[#050816] text-gold">
         <div className="rounded-lg border border-gold/20 bg-gold/[0.04] px-5 py-3 text-xs font-black uppercase tracking-[0.18em]">
           Securing session
         </div>
@@ -102,7 +102,7 @@ export default function DashboardLayout() {
   }
 
   return (
-    <div className="flex h-screen bg-black text-white font-mono overflow-hidden">
+    <div className="flex h-screen bg-[#050816] text-white font-mono overflow-hidden">
       {/* Mobile overlay */}
       <AnimatePresence>
         {mobileOpen && (
@@ -111,14 +111,14 @@ export default function DashboardLayout() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setMobileOpen(false)}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
+            className="fixed inset-0 bg-[#0f1428]/60 backdrop-blur-sm z-40 lg:hidden"
           />
         )}
       </AnimatePresence>
 
       {/* Sidebar */}
       <aside className={`
-        ${sidebarWidth} flex flex-col border-r border-gold/15 bg-black/70 backdrop-blur-2xl transition-all duration-300 z-50
+        ${sidebarWidth} flex flex-col border-r border-[#FFD36B]/15 bg-[#050816]/90 backdrop-blur-2xl transition-all duration-300 z-50
         fixed lg:relative inset-y-0 left-0
         ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}>
@@ -241,9 +241,21 @@ export default function DashboardLayout() {
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 overflow-y-auto bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-cyber-navy/40 via-black to-black relative">
+      <main className="flex-1 overflow-y-auto relative" style={{ background: '#050816' }}>
+        {/* Atmospheric Background Layers */}
+        <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+          {/* Deep navy base */}
+          <div className="absolute inset-0 bg-[#050816]" />
+          {/* Gold radial glow — top right */}
+          <div className="absolute -right-24 -top-36 h-[560px] w-[560px] rounded-full border border-[#FFD36B]/10 bg-[radial-gradient(circle,rgba(255,211,107,0.14),rgba(255,179,0,0.04)_38%,transparent_68%)]" />
+          {/* Gold radial glow — top left */}
+          <div className="absolute left-1/4 top-0 h-80 w-[520px] bg-[radial-gradient(circle,rgba(255,211,107,0.08),transparent_68%)] blur-3xl" />
+          {/* Subtle gold grid pattern */}
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,211,107,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(255,211,107,0.03)_1px,transparent_1px)] bg-[size:48px_48px] opacity-50" />
+        </div>
+
         {/* Mobile header */}
-        <div className="lg:hidden sticky top-0 z-30 flex items-center gap-3 border-b border-gold/15 bg-black/90 backdrop-blur-xl px-4 py-3">
+        <div className="lg:hidden sticky top-0 z-30 flex items-center gap-3 border-b border-[#FFD36B]/15 bg-[#050816]/90 backdrop-blur-xl px-4 py-3">
           <button
             onClick={() => setMobileOpen(true)}
             className="p-2 rounded-lg border border-gold/20 bg-gold/5 text-gold"
@@ -256,8 +268,6 @@ export default function DashboardLayout() {
           </div>
         </div>
 
-        {/* Background Grid Pattern */}
-        <div className="absolute inset-0 pointer-events-none opacity-[0.07] [background-image:linear-gradient(rgba(212,175,55,0.15)_1px,transparent_1px),linear-gradient(90deg,rgba(212,175,55,0.15)_1px,transparent_1px)] [background-size:40px_40px]" />
         <div className="relative z-10 min-h-full">
           <Outlet />
         </div>

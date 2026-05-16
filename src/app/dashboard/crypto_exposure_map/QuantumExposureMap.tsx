@@ -84,7 +84,7 @@ export default function QuantumExposureMap({ data, loading, onRefresh }: Props) 
 
   if (loading && data.nodes.length === 0) {
     return (
-      <div className="h-[500px] flex items-center justify-center border border-gold/10 bg-black/40 rounded-xl">
+      <div className="h-[500px] flex items-center justify-center border border-gold/10 bg-[#0f1428]/40 rounded-xl">
         <div className="text-center">
           <div className="w-12 h-12 border-2 border-gold/30 border-t-gold rounded-full animate-spin mx-auto mb-4" />
           <p className="text-[10px] text-gold/50 uppercase font-black tracking-widest">Synthesizing Topology...</p>
@@ -95,7 +95,7 @@ export default function QuantumExposureMap({ data, loading, onRefresh }: Props) 
 
   if (!loading && data.nodes.length === 0) {
     return (
-      <div className="h-[500px] flex items-center justify-center border border-gold/10 bg-black/40 rounded-xl p-8">
+      <div className="h-[500px] flex items-center justify-center border border-gold/10 bg-[#0f1428]/40 rounded-xl p-8">
         <div className="text-center max-w-sm">
           <div className="w-16 h-16 bg-gold/5 border border-gold/20 rounded-full flex items-center justify-center mx-auto mb-6">
             <Globe className="w-8 h-8 text-gold/30" />
@@ -117,11 +117,11 @@ export default function QuantumExposureMap({ data, loading, onRefresh }: Props) 
 
   return (
     <div className="grid lg:grid-cols-4 gap-6">
-      <div className="lg:col-span-3 rounded-xl border border-gold/15 bg-black/50 backdrop-blur-xl relative overflow-hidden h-[500px]">
+      <div className="lg:col-span-3 rounded-xl border border-gold/15 bg-[#0f1428]/50 backdrop-blur-xl relative overflow-hidden h-[500px]">
         <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" />
         
         <div className="absolute top-4 left-4 z-20 flex gap-2">
-            <button onClick={onRefresh} className="p-2 bg-black/40 border border-gold/20 rounded hover:border-gold/50 transition-colors group">
+            <button onClick={onRefresh} className="p-2 bg-[#0f1428]/40 border border-gold/20 rounded hover:border-gold/50 transition-colors group">
                 <RefreshCw className={`w-3.5 h-3.5 text-gold/60 group-hover:text-gold ${loading ? 'animate-spin' : ''}`} />
             </button>
         </div>
@@ -207,7 +207,7 @@ export default function QuantumExposureMap({ data, loading, onRefresh }: Props) 
       </div>
 
       {/* Detail Inspector */}
-      <div className="rounded-xl border border-gold/15 bg-black/50 backdrop-blur-xl p-5 flex flex-col h-[500px]">
+      <div className="rounded-xl border border-gold/15 bg-[#0f1428]/50 backdrop-blur-xl p-5 flex flex-col h-[500px]">
         <h3 className="text-xs font-black uppercase tracking-[0.2em] text-white/50 mb-4 flex items-center gap-2">
           <Eye className="h-3.5 w-3.5 text-gold/50" />
           Node Inspector

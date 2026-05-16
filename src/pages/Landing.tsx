@@ -1517,7 +1517,7 @@ export default function App() {
 
   return (
     <TooltipProvider>
-      <div className="min-h-screen bg-cyber-black text-foreground selection:bg-quantum-blue/30 overflow-x-hidden">
+      <div className="min-h-screen bg-transparent text-foreground selection:bg-quantum-blue/30 overflow-x-hidden">
         <CyberBackground />
 
         {/* Navigation Bar */}
@@ -1804,7 +1804,7 @@ export default function App() {
         </section>
 
         {/* Harvest Now, Decrypt Later Infographic Section */}
-        <section className="py-20 bg-cyber-black relative overflow-hidden">
+        <section className="py-20 relative overflow-hidden">
           <div className="max-w-7xl mx-auto px-6">
             <motion.div
               initial={{ opacity: 0, y: -20 }}
@@ -1911,7 +1911,7 @@ export default function App() {
         </section>
 
         {/* Action Section */}
-        <section id="intelligence" className="py-32 bg-cyber-black relative overflow-hidden">
+        <section id="intelligence" className="py-32 relative overflow-hidden">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_10%,rgba(212,175,55,0.11),transparent_38%)] pointer-events-none" />
           <div className="max-w-7xl mx-auto px-6">
             <h2 className="text-4xl font-black uppercase text-center mb-20 tracking-[0.2em] text-white">What you can <span className="text-gold gold-glow">do now</span></h2>
@@ -2108,8 +2108,39 @@ export default function App() {
           </div>
         </section>
 
+        {/* Post-Quantum Cryptography Visual Section */}
+        <section className="py-20 relative overflow-hidden">
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(212,175,55,0.06),transparent_45%)]" />
+          <div className="max-w-6xl mx-auto px-6">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.9, ease: "easeOut" }}
+              viewport={{ once: true, amount: 0.2 }}
+              className="relative group"
+            >
+              {/* Outer Glow Ring */}
+              <div className="absolute -inset-1 rounded-2xl bg-gradient-to-br from-gold/25 via-gold/10 to-gold/25 blur-xl opacity-40 group-hover:opacity-80 transition-opacity duration-700 pointer-events-none" />
+
+              {/* Image Container */}
+              <div className="relative rounded-2xl overflow-hidden border border-gold/15 bg-cyber-black/40 shadow-[0_30px_100px_rgba(0,0,0,0.5)] backdrop-blur-sm group-hover:border-gold/35 group-hover:shadow-[0_30px_100px_rgba(212,175,55,0.12)] transition-all duration-700">
+                <img
+                  src="/Post_Quantum.png"
+                  alt="Post-Quantum Cryptography Migration Framework"
+                  className="w-full h-auto object-contain opacity-90 group-hover:opacity-100 transition-opacity duration-700"
+                />
+                {/* Top Gradient Vignette */}
+                <div className="absolute inset-0 bg-gradient-to-b from-cyber-black/20 via-transparent to-cyber-black/30 pointer-events-none" />
+                {/* Corner Accents */}
+                <div className="absolute top-0 left-0 w-16 h-16 border-t-2 border-l-2 border-gold/25 rounded-tl-2xl pointer-events-none" />
+                <div className="absolute bottom-0 right-0 w-16 h-16 border-b-2 border-r-2 border-gold/25 rounded-br-2xl pointer-events-none" />
+              </div>
+            </motion.div>
+          </div>
+        </section>
+
         {/* Impact of Inaction Section */}
-        <section className="py-40 bg-cyber-black relative overflow-hidden">
+        <section className="py-40 relative overflow-hidden">
           {/* Section Darkening Overlay */}
           <motion.div
             initial={{ opacity: 0 }}
@@ -2159,7 +2190,7 @@ export default function App() {
           </div>
         </section>
 
-        <section className="py-20 relative overflow-hidden bg-cyber-black">
+        <section className="py-20 relative overflow-hidden">
           <div className="max-w-7xl mx-auto px-6">
             <motion.div
               id="features"
@@ -2235,7 +2266,7 @@ export default function App() {
         </section>
 
         {/* Footer / CTA Final */}
-        <footer className="pt-32 pb-16 bg-[#050505] border-t border-gold/20 relative overflow-hidden">
+        <footer className="pt-32 pb-16 bg-transparent border-t border-gold/20 relative overflow-hidden">
           <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-gold to-transparent" />
 
           <div className="max-w-6xl mx-auto px-6 relative z-10">

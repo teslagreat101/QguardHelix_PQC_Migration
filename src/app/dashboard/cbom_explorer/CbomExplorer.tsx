@@ -141,7 +141,7 @@ export default function CbomExplorer() {
           { label: 'PQC Ready', value: stats.pqcReadyComponents, icon: Shield, color: 'text-green-400' },
           { label: 'Total Instances', value: stats.totalInstances, icon: Server, color: 'text-gold' },
         ].map((stat, index) => (
-          <motion.div key={stat.label} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.06 }} className="p-4 rounded-xl border border-gold/12 bg-black/50 backdrop-blur-xl">
+          <motion.div key={stat.label} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.06 }} className="p-4 rounded-xl border border-gold/12 bg-[#0f1428]/50 backdrop-blur-xl">
             <div className="flex items-center gap-2 mb-2">
               <stat.icon className="h-3.5 w-3.5 text-gold/50" />
               <span className="text-[10px] font-black uppercase tracking-[0.15em] text-white/40">{stat.label}</span>
@@ -159,24 +159,24 @@ export default function CbomExplorer() {
             placeholder="Search components, algorithms, evidence..."
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
-            className="w-full bg-black/40 border border-gold/15 rounded-lg py-2.5 pl-10 pr-4 text-sm focus:outline-none focus:border-gold/40 transition-colors text-white placeholder-white/25"
+            className="w-full bg-[#0f1428]/40 border border-gold/15 rounded-lg py-2.5 pl-10 pr-4 text-sm focus:outline-none focus:border-gold/40 transition-colors text-white placeholder-white/25"
           />
         </div>
 
         <div className="flex gap-2 flex-wrap">
           {availableTypes.map((type) => (
-            <button key={type} onClick={() => setSelectedType(selectedType === type ? null : type)} className={`text-[10px] font-black uppercase tracking-wider px-3 py-2 rounded-lg border transition-all ${selectedType === type ? 'border-gold/50 bg-gold/10 text-gold' : 'border-gold/10 bg-black/30 text-white/40 hover:border-gold/25 hover:text-white/60'}`}>
+            <button key={type} onClick={() => setSelectedType(selectedType === type ? null : type)} className={`text-[10px] font-black uppercase tracking-wider px-3 py-2 rounded-lg border transition-all ${selectedType === type ? 'border-gold/50 bg-gold/10 text-gold' : 'border-gold/10 bg-[#0f1428]/30 text-white/40 hover:border-gold/25 hover:text-white/60'}`}>
               {type}
             </button>
           ))}
         </div>
 
-        <button onClick={() => setShowVulnerableOnly(!showVulnerableOnly)} className={`text-[10px] font-black uppercase tracking-wider px-3 py-2 rounded-lg border transition-all flex items-center gap-1.5 ${showVulnerableOnly ? 'border-red-500/50 bg-red-500/10 text-red-400' : 'border-gold/10 bg-black/30 text-white/40 hover:border-gold/25'}`}>
+        <button onClick={() => setShowVulnerableOnly(!showVulnerableOnly)} className={`text-[10px] font-black uppercase tracking-wider px-3 py-2 rounded-lg border transition-all flex items-center gap-1.5 ${showVulnerableOnly ? 'border-red-500/50 bg-red-500/10 text-red-400' : 'border-gold/10 bg-[#0f1428]/30 text-white/40 hover:border-gold/25'}`}>
           <AlertTriangle className="h-3 w-3" /> Vulnerable Only
         </button>
       </div>
 
-      <div className="rounded-xl border border-gold/15 bg-black/50 backdrop-blur-xl overflow-hidden">
+      <div className="rounded-xl border border-gold/15 bg-[#0f1428]/50 backdrop-blur-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse min-w-[980px]">
             <thead>

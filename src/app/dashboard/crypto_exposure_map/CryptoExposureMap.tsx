@@ -148,7 +148,7 @@ export default function CryptoExposureMap() {
       {error && <div className="rounded-xl border border-red-500/25 bg-red-500/10 p-4 text-sm text-red-300">{error}</div>}
 
       <div className="grid lg:grid-cols-4 gap-6">
-        <div className="lg:col-span-3 rounded-xl border border-gold/15 bg-black/50 backdrop-blur-xl relative overflow-hidden" style={{ minHeight: 520 }}>
+        <div className="lg:col-span-3 rounded-xl border border-gold/15 bg-[#0f1428]/50 backdrop-blur-xl relative overflow-hidden" style={{ minHeight: 520 }}>
           <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_30%,rgba(212,175,55,0.06),transparent_60%)]" />
 
@@ -218,7 +218,7 @@ export default function CryptoExposureMap() {
         </div>
 
         <div className="space-y-4">
-          <div className="rounded-xl border border-gold/15 bg-black/50 backdrop-blur-xl p-5 relative overflow-hidden">
+          <div className="rounded-xl border border-gold/15 bg-[#0f1428]/50 backdrop-blur-xl p-5 relative overflow-hidden">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_100%_0%,rgba(212,175,55,0.05),transparent_50%)]" />
             <h3 className="text-xs font-black uppercase tracking-[0.2em] text-white/50 mb-4 relative z-10">
               <Eye className="h-3.5 w-3.5 inline mr-2 text-gold/50" /> Node Inspector
@@ -274,7 +274,7 @@ export default function CryptoExposureMap() {
             )}
           </div>
 
-          <div className="rounded-xl border border-gold/15 bg-black/50 backdrop-blur-xl p-5">
+          <div className="rounded-xl border border-gold/15 bg-[#0f1428]/50 backdrop-blur-xl p-5">
             <h3 className="text-xs font-black uppercase tracking-[0.2em] text-white/50 mb-3">Risk Distribution</h3>
             {[
               { label: 'Critical (80+)', count: distribution.critical, color: '#ef4444' },

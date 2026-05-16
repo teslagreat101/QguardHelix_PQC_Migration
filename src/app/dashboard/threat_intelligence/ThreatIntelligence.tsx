@@ -116,7 +116,7 @@ export default function ThreatIntelligence() {
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.06 }}
-            className="p-5 rounded-xl border border-gold/12 bg-black/50 backdrop-blur-xl relative overflow-hidden group hover:border-gold/30 transition-all"
+            className="p-5 rounded-xl border border-gold/12 bg-[#0f1428]/50 backdrop-blur-xl relative overflow-hidden group hover:border-gold/30 transition-all"
           >
             <div className="absolute top-3 right-3 opacity-[0.06] group-hover:opacity-[0.12] transition-opacity">
               <card.icon className="h-12 w-12" />
@@ -133,7 +133,7 @@ export default function ThreatIntelligence() {
       <div className="grid lg:grid-cols-5 gap-6">
         {/* Threat Actors Panel */}
         <div className="lg:col-span-2 space-y-4">
-          <div className="rounded-xl border border-gold/15 bg-black/50 backdrop-blur-xl p-5">
+          <div className="rounded-xl border border-gold/15 bg-[#0f1428]/50 backdrop-blur-xl p-5">
             <h2 className="text-xs font-black uppercase tracking-[0.2em] text-white/60 mb-4">
               <Skull className="h-3.5 w-3.5 inline mr-2 text-gold/60" />
               Tracked Adversaries
@@ -177,7 +177,7 @@ export default function ThreatIntelligence() {
 
           {/* Actor Detail */}
           {selectedActor && (
-            <div className="rounded-xl border border-gold/15 bg-black/50 backdrop-blur-xl p-5 relative overflow-hidden">
+            <div className="rounded-xl border border-gold/15 bg-[#0f1428]/50 backdrop-blur-xl p-5 relative overflow-hidden">
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_100%_0%,rgba(239,68,68,0.04),transparent_50%)]" />
               <div className="relative z-10">
                 <h3 className="text-lg font-black text-white mb-1">{selectedActor.name}</h3>
@@ -209,7 +209,7 @@ export default function ThreatIntelligence() {
         </div>
 
         {/* Live Intel Feed */}
-        <div className="lg:col-span-3 rounded-xl border border-gold/15 bg-black/50 backdrop-blur-xl p-5 relative overflow-hidden">
+        <div className="lg:col-span-3 rounded-xl border border-gold/15 bg-[#0f1428]/50 backdrop-blur-xl p-5 relative overflow-hidden">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_0%_0%,rgba(212,175,55,0.04),transparent_40%)]" />
           <div className="relative z-10">
             <div className="flex items-center justify-between mb-4">

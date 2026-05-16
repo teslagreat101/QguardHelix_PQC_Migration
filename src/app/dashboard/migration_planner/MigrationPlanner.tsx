@@ -88,7 +88,7 @@ export default function MigrationPlanner() {
       </header>
 
       {/* Overall Progress Bar */}
-      <div className="rounded-xl border border-gold/15 bg-black/50 backdrop-blur-xl p-6">
+      <div className="rounded-xl border border-gold/15 bg-[#0f1428]/50 backdrop-blur-xl p-6">
         <div className="flex items-center justify-between mb-3">
           <span className="text-xs font-black uppercase tracking-[0.2em] text-white/60">Overall Migration Progress</span>
           <span className="text-lg font-black text-gold">{overallProgress}%</span>
@@ -135,7 +135,7 @@ export default function MigrationPlanner() {
                 className={`w-full text-left p-4 rounded-xl border transition-all duration-300 group relative overflow-hidden ${
                   isSelected
                     ? `${colors.bg} ${colors.border} shadow-lg`
-                    : 'border-gold/8 bg-black/30 hover:border-gold/20 hover:bg-white/[0.02]'
+                    : 'border-gold/8 bg-[#0f1428]/30 hover:border-gold/20 hover:bg-white/[0.02]'
                 }`}
               >
                 {isSelected && (
@@ -202,7 +202,7 @@ export default function MigrationPlanner() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="rounded-xl border border-gold/15 bg-black/50 backdrop-blur-xl p-6 relative overflow-hidden"
+                className="rounded-xl border border-gold/15 bg-[#0f1428]/50 backdrop-blur-xl p-6 relative overflow-hidden"
               >
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_100%_0%,rgba(212,175,55,0.06),transparent_50%)]" />
                 <div className="relative z-10">
@@ -245,7 +245,7 @@ export default function MigrationPlanner() {
           </AnimatePresence>
 
           {/* Migration Queue */}
-          <div className="rounded-xl border border-gold/15 bg-black/50 backdrop-blur-xl p-6 relative overflow-hidden">
+          <div className="rounded-xl border border-gold/15 bg-[#0f1428]/50 backdrop-blur-xl p-6 relative overflow-hidden">
             <h3 className="text-xs font-black uppercase tracking-[0.2em] text-white/60 mb-4">
               <Layers className="h-3.5 w-3.5 inline mr-2 text-gold/60" />
               Migration Queue

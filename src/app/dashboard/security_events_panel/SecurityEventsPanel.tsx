@@ -30,7 +30,7 @@ export default function SecurityEventsPanel({ events, loading }: Props) {
 
   if (loading && events.length === 0) {
     return (
-      <div className="h-full flex flex-col items-center justify-center border border-gold/10 bg-black/40 rounded-xl">
+      <div className="h-full flex flex-col items-center justify-center border border-gold/10 bg-[#0f1428]/40 rounded-xl">
         <div className="w-8 h-8 border-2 border-gold/30 border-t-gold rounded-full animate-spin mb-3" />
         <p className="text-[10px] text-gold/40 uppercase font-black tracking-widest">Awaiting Telemetry...</p>
       </div>
@@ -38,7 +38,7 @@ export default function SecurityEventsPanel({ events, loading }: Props) {
   }
 
   return (
-    <div className="flex flex-col h-full rounded-xl border border-gold/15 bg-black/50 backdrop-blur-xl overflow-hidden">
+    <div className="flex flex-col h-full rounded-xl border border-gold/15 bg-[#0f1428]/50 backdrop-blur-xl overflow-hidden">
       <div className="p-4 border-b border-gold/10 flex justify-between items-center bg-white/[0.02]">
         <h2 className="text-xs font-black uppercase tracking-[0.2em] text-white/80 flex items-center gap-2">
           <Bell className="h-3.5 w-3.5 text-gold" />
@@ -107,7 +107,7 @@ export default function SecurityEventsPanel({ events, loading }: Props) {
         </AnimatePresence>
       </div>
 
-      <div className="p-3 border-t border-gold/10 bg-black/20 text-center">
+      <div className="p-3 border-t border-gold/10 bg-[#0f1428]/20 text-center">
         <button className="text-[9px] font-black uppercase tracking-[0.2em] text-white/40 hover:text-gold transition-colors">
             View All Audit Logs
         </button>

@@ -144,7 +144,7 @@ export default function LiveMigrationOperations() {
           { label: 'Failed', value: failedCount, color: 'text-red-400', icon: XCircle, iconClass: '' },
           { label: 'Total', value: jobs.length, color: 'text-white', icon: Server, iconClass: '' },
         ].map(s => (
-          <div key={s.label} className="p-4 rounded-xl border border-gold/12 bg-black/50 backdrop-blur-xl">
+          <div key={s.label} className="p-4 rounded-xl border border-gold/12 bg-[#0f1428]/50 backdrop-blur-xl">
             <div className="flex items-center gap-2 mb-2">
               <s.icon className={`h-3.5 w-3.5 text-gold/50 ${s.iconClass}`} />
               <span className="text-[10px] font-black uppercase tracking-[0.15em] text-white/40">{s.label}</span>
@@ -172,7 +172,7 @@ export default function LiveMigrationOperations() {
                 className={`w-full text-left p-4 rounded-xl border transition-all relative overflow-hidden ${
                   isSelected
                     ? `${cfg.bg} ${cfg.border} shadow-lg`
-                    : 'border-gold/8 bg-black/30 hover:border-gold/20'
+                    : 'border-gold/8 bg-[#0f1428]/30 hover:border-gold/20'
                 }`}
               >
                 {isSelected && <div className="absolute left-0 top-0 bottom-0 w-1 bg-gold rounded-r" />}
@@ -208,7 +208,7 @@ export default function LiveMigrationOperations() {
           {selectedJob && (
             <>
               {/* Job Info */}
-              <div className="rounded-xl border border-gold/15 bg-black/50 backdrop-blur-xl p-5">
+              <div className="rounded-xl border border-gold/15 bg-[#0f1428]/50 backdrop-blur-xl p-5">
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <h3 className="text-lg font-black text-white">{selectedJob.asset}</h3>
@@ -255,7 +255,7 @@ export default function LiveMigrationOperations() {
               </div>
 
               {/* Terminal Output */}
-              <div className="rounded-xl border border-gold/15 bg-black/80 backdrop-blur-xl overflow-hidden">
+              <div className="rounded-xl border border-gold/15 bg-[#0f1428]/80 backdrop-blur-xl overflow-hidden">
                 <div className="flex items-center gap-2 px-4 py-2.5 border-b border-gold/10 bg-gold/[0.03]">
                   <Terminal className="h-3.5 w-3.5 text-gold/50" />
                   <span className="text-[10px] font-black uppercase tracking-[0.15em] text-white/50">Migration Log — {selectedJob.asset}</span>

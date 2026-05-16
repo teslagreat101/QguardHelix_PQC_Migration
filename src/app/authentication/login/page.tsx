@@ -114,8 +114,7 @@ export default function LoginPage() {
             Secure <span>Access Node</span>
           </h1>
           <p className="qc-auth-lede">
-            Continue into QGuard with a gold-hardened command center interface,
-            live quantum session checks, and post-quantum access telemetry.
+            Access QGuard Helix through a hardened quantum-secure command center with real-time threat visibility, post-quantum protection, and enterprise-grade defense telemetry. ✨
           </p>
 
           <div className="qc-signal-grid" aria-label="Session security checks">

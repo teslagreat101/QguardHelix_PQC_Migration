@@ -82,7 +82,7 @@ export default function MigrationTimeline() {
       </header>
 
       {/* Progress overview */}
-      <div className="rounded-xl border border-gold/15 bg-black/50 backdrop-blur-xl p-6">
+      <div className="rounded-xl border border-gold/15 bg-[#0f1428]/50 backdrop-blur-xl p-6">
         <div className="flex items-center justify-between mb-3">
           <span className="text-xs font-black uppercase tracking-[0.2em] text-white/60">Timeline Progress</span>
           <span className="text-lg font-black text-gold">{progressPct}%</span>
@@ -148,7 +148,7 @@ export default function MigrationTimeline() {
 
                 {/* Content card */}
                 <div className={`ml-14 lg:ml-0 lg:w-[calc(50%-2rem)] ${isLeft ? '' : 'lg:ml-auto'}`}>
-                  <div className={`p-5 rounded-xl border ${styles.border} bg-black/50 backdrop-blur-xl hover:bg-white/[0.02] transition-colors group relative overflow-hidden`}>
+                  <div className={`p-5 rounded-xl border ${styles.border} bg-[#0f1428]/50 backdrop-blur-xl hover:bg-white/[0.02] transition-colors group relative overflow-hidden`}>
                     <div className={`absolute inset-0 bg-gradient-to-br ${event.status === 'in-progress' ? 'from-gold/[0.04]' : 'from-transparent'} to-transparent pointer-events-none`} />
                     <div className="relative z-10">
                       <div className="flex items-center gap-2 mb-2 flex-wrap">

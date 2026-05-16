@@ -39,7 +39,7 @@ import {
 
 type SettingsTab = 'profile' | 'security' | 'preferences' | 'activity'
 
-const inputClass = 'w-full rounded-lg border border-gold/15 bg-black/45 px-3 py-2.5 text-sm text-white outline-none transition focus:border-gold/50 focus:bg-black/65'
+const inputClass = 'w-full rounded-lg border border-gold/15 bg-[#0f1428]/45 px-3 py-2.5 text-sm text-white outline-none transition focus:border-gold/50 focus:bg-[#0f1428]/65'
 const labelClass = 'mb-1.5 block text-[10px] font-black uppercase tracking-[0.16em] text-white/35'
 const ghostButtonClass = 'inline-flex items-center justify-center gap-2 rounded-lg border border-gold/20 bg-gold/[0.04] px-3 py-2 text-xs font-bold text-gold transition hover:border-gold/40 hover:bg-gold/[0.08] disabled:cursor-not-allowed disabled:opacity-50'
 const primaryButtonClass = 'inline-flex items-center justify-center gap-2 rounded-lg border border-gold/40 bg-gold px-4 py-2 text-xs font-black uppercase tracking-[0.12em] text-black shadow-[0_0_20px_rgba(212,175,55,0.18)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50'
@@ -164,7 +164,7 @@ function qrImageSource(value: string) {
 
 function SectionCard({ children, className = '' }: { children: ReactNode; className?: string }) {
   return (
-    <div className={`rounded-lg border border-gold/15 bg-black/45 p-5 backdrop-blur-xl shadow-[0_0_30px_rgba(0,0,0,0.25)] ${className}`}>
+    <div className={`rounded-lg border border-gold/15 bg-[#0f1428]/45 p-5 backdrop-blur-xl shadow-[0_0_30px_rgba(0,0,0,0.25)] ${className}`}>
       {children}
     </div>
   )
@@ -290,7 +290,7 @@ function ProfileTab({
           style={profile.bannerUrl ? { backgroundImage: `linear-gradient(90deg,rgba(0,0,0,0.55),rgba(0,0,0,0.2)),url(${profile.bannerUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}
         >
           <div className="absolute bottom-4 left-5 flex items-end gap-4">
-            <div className="grid h-24 w-24 place-items-center overflow-hidden rounded-lg border border-gold/35 bg-black/60 text-2xl font-black text-gold shadow-[0_0_26px_rgba(212,175,55,0.18)]">
+            <div className="grid h-24 w-24 place-items-center overflow-hidden rounded-lg border border-gold/35 bg-[#0f1428]/60 text-2xl font-black text-gold shadow-[0_0_26px_rgba(212,175,55,0.18)]">
               {profile.avatarUrl ? <img src={profile.avatarUrl} alt="Profile avatar" className="h-full w-full object-cover" /> : initials}
             </div>
             <div className="pb-1">
@@ -598,7 +598,7 @@ function SecurityTab({
               </div>
               <div className="grid gap-2 sm:grid-cols-2">
                 {recoveryCodes.map((code) => (
-                  <code key={code} className="rounded border border-white/10 bg-black/50 px-3 py-2 text-xs text-white/85">{code}</code>
+                  <code key={code} className="rounded border border-white/10 bg-[#0f1428]/50 px-3 py-2 text-xs text-white/85">{code}</code>
                 ))}
               </div>
             </div>
@@ -1000,7 +1000,7 @@ export default function ProfileSettingsPage() {
 
   return (
     <div className="min-h-screen space-y-6 p-6 lg:p-8">
-      <header className="relative overflow-hidden rounded-lg border border-gold/15 bg-black/55 p-5 backdrop-blur-xl">
+      <header className="relative overflow-hidden rounded-lg border border-gold/15 bg-[#0f1428]/55 p-5 backdrop-blur-xl">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_12%_10%,rgba(212,175,55,0.18),transparent_28%),radial-gradient(circle_at_88%_12%,rgba(0,243,255,0.12),transparent_24%)]" />
         <div className="relative z-10 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div>

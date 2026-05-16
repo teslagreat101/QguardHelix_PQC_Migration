@@ -646,7 +646,7 @@ function EnterpriseProtectionShowcase() {
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.42 }}
-            className="relative flex h-full min-h-[360px] flex-col justify-between overflow-hidden rounded-2xl border border-gold/15 bg-black/30 p-7 shadow-[0_18px_70px_rgba(0,0,0,0.36)] backdrop-blur-xl transition-all duration-500 group-hover:border-gold/35 md:p-8"
+            className="relative flex h-full min-h-[360px] flex-col justify-between overflow-hidden rounded-2xl border border-gold/15 bg-[#0f1428]/30 p-7 shadow-[0_18px_70px_rgba(0,0,0,0.36)] backdrop-blur-xl transition-all duration-500 group-hover:border-gold/35 md:p-8"
           >
             <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(145deg,rgba(255,255,255,0.08),transparent_32%,rgba(212,175,55,0.1))]" />
             <div className="relative z-10">
@@ -680,7 +680,7 @@ function EnterpriseProtectionShowcase() {
             </div>
           </motion.div>
 
-          <div className="relative min-h-[310px] overflow-hidden rounded-2xl border border-gold/15 bg-black/25 shadow-2xl md:min-h-[420px]">
+          <div className="relative min-h-[310px] overflow-hidden rounded-2xl border border-gold/15 bg-[#0f1428]/25 shadow-2xl md:min-h-[420px]">
             <motion.img
               key={activeFeature.image}
               src={activeFeature.image}
@@ -2114,6 +2114,37 @@ export default function App() {
           </div>
         </section>
 
+        {/* Post-Quantum Cryptography Visual Section */}
+        <section className="py-20 relative overflow-hidden">
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(212,175,55,0.06),transparent_45%)]" />
+          <div className="max-w-6xl mx-auto px-6">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.9, ease: "easeOut" }}
+              viewport={{ once: true, amount: 0.2 }}
+              className="relative group"
+            >
+              {/* Outer Glow Ring */}
+              <div className="absolute -inset-1 rounded-2xl bg-gradient-to-br from-gold/25 via-gold/10 to-gold/25 blur-xl opacity-40 group-hover:opacity-80 transition-opacity duration-700 pointer-events-none" />
+
+              {/* Image Container */}
+              <div className="relative rounded-2xl overflow-hidden border border-gold/15 bg-cyber-black/40 shadow-[0_30px_100px_rgba(0,0,0,0.5)] backdrop-blur-sm group-hover:border-gold/35 group-hover:shadow-[0_30px_100px_rgba(212,175,55,0.12)] transition-all duration-700">
+                <img
+                  src="/Post_Quantum.png"
+                  alt="Post-Quantum Cryptography Migration Framework"
+                  className="w-full h-auto object-contain opacity-90 group-hover:opacity-100 transition-opacity duration-700"
+                />
+                {/* Top Gradient Vignette */}
+                <div className="absolute inset-0 bg-gradient-to-b from-cyber-black/20 via-transparent to-cyber-black/30 pointer-events-none" />
+                {/* Corner Accents */}
+                <div className="absolute top-0 left-0 w-16 h-16 border-t-2 border-l-2 border-gold/25 rounded-tl-2xl pointer-events-none" />
+                <div className="absolute bottom-0 right-0 w-16 h-16 border-b-2 border-r-2 border-gold/25 rounded-br-2xl pointer-events-none" />
+              </div>
+            </motion.div>
+          </div>
+        </section>
+
         {/* Impact of Inaction Section */}
         <section className="py-40 bg-cyber-black relative overflow-hidden">
           {/* Section Darkening Overlay */}
@@ -2315,7 +2346,7 @@ export default function App() {
                       href={social.href}
                       whileHover={{ y: -5, scale: 1.1 }}
                       whileTap={{ scale: 0.95 }}
-                      className="h-10 w-10 rounded-lg border border-gold/20 bg-black/50 flex items-center justify-center text-white/50 hover:text-gold hover:border-gold hover:bg-gold/10 transition-all shadow-[0_0_10px_rgba(0,0,0,0.5)]"
+                      className="h-10 w-10 rounded-lg border border-gold/20 bg-[#0f1428]/50 flex items-center justify-center text-white/50 hover:text-gold hover:border-gold hover:bg-gold/10 transition-all shadow-[0_0_10px_rgba(0,0,0,0.5)]"
                       aria-label={social.name}
                     >
                       <social.icon className="h-4 w-4" />

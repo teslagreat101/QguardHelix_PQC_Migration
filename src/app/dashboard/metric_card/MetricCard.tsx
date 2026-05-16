@@ -20,7 +20,7 @@ export default function MetricCard({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay }}
-      className="p-6 border border-gold/20 bg-black/40 backdrop-blur-md rounded-xl hover:border-gold/40 transition-all group relative overflow-hidden"
+      className="p-6 border border-gold/20 bg-[#0f1428]/40 backdrop-blur-md rounded-xl hover:border-gold/40 transition-all group relative overflow-hidden"
     >
       <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
         <Icon className="h-16 w-16 text-gold" />

@@ -133,7 +133,7 @@ export default function MigrationTerminal() {
 
       {/* Terminal UI */}
       <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <div className="lg:col-span-3 border border-gold/20 bg-black/60 rounded-xl overflow-hidden flex flex-col shadow-[0_30px_100px_rgba(0,0,0,0.8)] relative">
+        <div className="lg:col-span-3 border border-gold/20 bg-[#0f1428]/60 rounded-xl overflow-hidden flex flex-col shadow-[0_30px_100px_rgba(0,0,0,0.8)] relative">
           <div className="bg-gold/5 border-b border-gold/20 px-4 py-2 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <TerminalIcon className="h-4 w-4 text-gold" />
@@ -190,7 +190,7 @@ export default function MigrationTerminal() {
 
         {/* Status Panel */}
         <div className="space-y-6">
-          <div className="border border-gold/20 bg-black/40 rounded-xl p-5 space-y-4">
+          <div className="border border-gold/20 bg-[#0f1428]/40 rounded-xl p-5 space-y-4">
              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">Operation Status</h3>
              <div className="space-y-4">
                 <div className="flex justify-between items-center">
@@ -217,7 +217,7 @@ export default function MigrationTerminal() {
              </div>
           </div>
 
-          <div className="border border-gold/20 bg-black/40 rounded-xl p-5 space-y-4">
+          <div className="border border-gold/20 bg-[#0f1428]/40 rounded-xl p-5 space-y-4">
              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">Encryption Engine</h3>
              <div className="grid grid-cols-2 gap-3">
                 <div className="p-3 bg-gold/5 border border-gold/10 rounded flex flex-col items-center text-center">
@@ -233,7 +233,7 @@ export default function MigrationTerminal() {
              </div>
           </div>
 
-          <div className="flex-1 border border-gold/20 bg-black/40 rounded-xl p-5">
+          <div className="flex-1 border border-gold/20 bg-[#0f1428]/40 rounded-xl p-5">
              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 mb-4">Rollback Snapshots</h3>
              <div className="space-y-3">
                 <div className="flex items-center gap-3 p-2 border border-white/5 bg-white/5 rounded">

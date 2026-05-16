@@ -232,7 +232,7 @@ function moduleStatusColor(status: ModuleStatus) {
     case 'Failed': return 'border-red-500/30 bg-red-500/10 text-red-400';
     case 'Skipped': return 'border-white/10 bg-white/[0.03] text-white/35';
     case 'No findings': return 'border-cyan-500/25 bg-cyan-500/10 text-cyan-400';
-    default: return 'border-white/10 bg-black/30 text-white/35';
+    default: return 'border-white/10 bg-[#0f1428]/30 text-white/35';
   }
 }
 
@@ -943,7 +943,7 @@ npm run agent:watch`;
       )}
 
       {status !== 'idle' && activeTab !== 'setup' && (
-        <div className="rounded-xl border border-gold/15 bg-black/50 backdrop-blur-xl p-5">
+        <div className="rounded-xl border border-gold/15 bg-[#0f1428]/50 backdrop-blur-xl p-5">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-3">
               {isRunning && <Loader2 className="h-4 w-4 text-gold animate-spin" />}
@@ -965,7 +965,7 @@ npm run agent:watch`;
 
       {terminalVisible && (
         <div className="grid xl:grid-cols-[minmax(0,1fr)_380px] gap-4">
-          <div className="rounded-xl border border-gold/20 bg-black/85 backdrop-blur-xl overflow-hidden shadow-[0_0_35px_rgba(212,175,55,0.08)]">
+          <div className="rounded-xl border border-gold/20 bg-[#0f1428]/85 backdrop-blur-xl overflow-hidden shadow-[0_0_35px_rgba(212,175,55,0.08)]">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 px-4 py-3 border-b border-gold/10 bg-gold/[0.04]">
               <div className="flex items-center gap-3 min-w-0">
                 <Terminal className="h-4 w-4 text-gold" />
@@ -1009,7 +1009,7 @@ npm run agent:watch`;
                 ['PQC Ready', liveCounts.pqcReady, 'text-green-400'],
                 ['Vulnerable', liveCounts.vulnerable, 'text-red-400'],
               ].map(([label, value, color]) => (
-                <div key={label as string} className="bg-black/75 px-3 py-2">
+                <div key={label as string} className="bg-[#0f1428]/75 px-3 py-2">
                   <div className="text-[8px] uppercase tracking-wider text-white/25 font-black">{label}</div>
                   <div className={`text-lg font-black ${color}`}>{value}</div>
                 </div>
@@ -1040,7 +1040,7 @@ npm run agent:watch`;
             </div>
           </div>
 
-          <div className="rounded-xl border border-gold/20 bg-black/70 backdrop-blur-xl overflow-hidden">
+          <div className="rounded-xl border border-gold/20 bg-[#0f1428]/70 backdrop-blur-xl overflow-hidden">
             <div className="px-4 py-3 border-b border-gold/10 bg-gold/[0.04] flex items-center justify-between">
               <div className="text-[10px] font-black uppercase tracking-[0.18em] text-white/60">Module Execution Timeline</div>
               <div className="text-[10px] text-white/30 font-mono">{modules.filter((module) => module.status === 'Completed').length}/{modules.length || 0}</div>
@@ -1138,7 +1138,7 @@ npm run agent:watch`;
       {activeTab === 'setup' && (
         <div className="grid lg:grid-cols-2 gap-6">
           <div className="space-y-4">
-            <div className="rounded-xl border border-gold/15 bg-black/50 backdrop-blur-xl p-5">
+            <div className="rounded-xl border border-gold/15 bg-[#0f1428]/50 backdrop-blur-xl p-5">
               <h2 className="text-xs font-black uppercase tracking-[0.2em] text-white/60 mb-4 flex items-center gap-2">
                 <Target className="h-4 w-4 text-gold" /> Authorized Asset Input
               </h2>
@@ -1149,7 +1149,7 @@ npm run agent:watch`;
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
                 placeholder={'example.com\nhttps://api.company.com\nhttps://github.com/company/repo\nssh://bastion.company.com:22'}
-                className="w-full h-40 bg-black/40 border border-gold/15 rounded-lg p-4 text-sm font-mono focus:outline-none focus:border-gold/40 transition-colors text-white placeholder-white/20 resize-none mb-4"
+                className="w-full h-40 bg-[#0f1428]/40 border border-gold/15 rounded-lg p-4 text-sm font-mono focus:outline-none focus:border-gold/40 transition-colors text-white placeholder-white/20 resize-none mb-4"
               />
               <label className="flex items-start gap-3 rounded-lg border border-gold/10 bg-white/[0.02] p-3 mb-4 cursor-pointer">
                 <input
@@ -1189,7 +1189,7 @@ npm run agent:watch`;
             )}
           </div>
 
-          <div className="rounded-xl border border-gold/15 bg-black/50 backdrop-blur-xl p-5 flex flex-col">
+          <div className="rounded-xl border border-gold/15 bg-[#0f1428]/50 backdrop-blur-xl p-5 flex flex-col">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xs font-black uppercase tracking-[0.2em] text-white/60 flex items-center gap-2">
                 <Network className="h-4 w-4 text-gold" /> Scan Queue ({targets.length})
@@ -1245,7 +1245,7 @@ npm run agent:watch`;
           )}
 
           <div className="grid lg:grid-cols-[minmax(0,1fr)_360px] gap-6">
-            <div className="rounded-xl border border-gold/15 bg-black/50 backdrop-blur-xl p-5">
+            <div className="rounded-xl border border-gold/15 bg-[#0f1428]/50 backdrop-blur-xl p-5">
               <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-5">
                 <div>
                   <h2 className="text-lg font-black uppercase tracking-tight text-white">
@@ -1280,7 +1280,7 @@ npm run agent:watch`;
               </div>
             </div>
 
-            <div className="rounded-xl border border-gold/15 bg-black/50 backdrop-blur-xl p-5">
+            <div className="rounded-xl border border-gold/15 bg-[#0f1428]/50 backdrop-blur-xl p-5">
               <h3 className="text-xs font-black uppercase tracking-[0.18em] text-white/60 mb-3 flex items-center gap-2">
                 <Shield className="h-4 w-4 text-gold" /> Tenant Isolation
               </h3>
@@ -1297,7 +1297,7 @@ npm run agent:watch`;
 
           <div className="grid xl:grid-cols-[420px_minmax(0,1fr)] gap-6">
             <div className="space-y-4">
-              <div className="rounded-xl border border-gold/15 bg-black/50 backdrop-blur-xl p-5">
+              <div className="rounded-xl border border-gold/15 bg-[#0f1428]/50 backdrop-blur-xl p-5">
                 <h3 className="text-xs font-black uppercase tracking-[0.18em] text-white/60 mb-4 flex items-center gap-2">
                   <Plus className="h-4 w-4 text-gold" /> Create New Collector Agent
                 </h3>
@@ -1306,25 +1306,25 @@ npm run agent:watch`;
                     value={agentForm.name}
                     onChange={(e) => setAgentForm((prev) => ({ ...prev, name: e.target.value }))}
                     placeholder="Agent name"
-                    className="w-full bg-black/40 border border-gold/15 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-gold/40"
+                    className="w-full bg-[#0f1428]/40 border border-gold/15 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-gold/40"
                   />
                   <select
                     value={agentForm.environment}
                     onChange={(e) => setAgentForm((prev) => ({ ...prev, environment: e.target.value }))}
-                    className="w-full bg-black/40 border border-gold/15 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-gold/40"
+                    className="w-full bg-[#0f1428]/40 border border-gold/15 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-gold/40"
                   >
                     {['production', 'staging', 'development', 'dr', 'lab'].map((env) => <option key={env} value={env}>{env}</option>)}
                   </select>
                   <textarea
                     value={agentForm.allowedTargets}
                     onChange={(e) => setAgentForm((prev) => ({ ...prev, allowedTargets: e.target.value }))}
-                    className="w-full h-24 bg-black/40 border border-gold/15 rounded-lg p-3 text-xs font-mono text-white focus:outline-none focus:border-gold/40 resize-none"
+                    className="w-full h-24 bg-[#0f1428]/40 border border-gold/15 rounded-lg p-3 text-xs font-mono text-white focus:outline-none focus:border-gold/40 resize-none"
                     placeholder={'https://api.customer.com\nssh://server.customer.com:22'}
                   />
                   <textarea
                     value={agentForm.allowedPaths}
                     onChange={(e) => setAgentForm((prev) => ({ ...prev, allowedPaths: e.target.value }))}
-                    className="w-full h-20 bg-black/40 border border-gold/15 rounded-lg p-3 text-xs font-mono text-white focus:outline-none focus:border-gold/40 resize-none"
+                    className="w-full h-20 bg-[#0f1428]/40 border border-gold/15 rounded-lg p-3 text-xs font-mono text-white focus:outline-none focus:border-gold/40 resize-none"
                     placeholder={'C:\\Apps\\CustomerApi\n/opt/customer-api'}
                   />
                   <div className="grid grid-cols-2 gap-3">
@@ -1332,12 +1332,12 @@ npm run agent:watch`;
                       value={agentForm.intervalSeconds}
                       onChange={(e) => setAgentForm((prev) => ({ ...prev, intervalSeconds: e.target.value }))}
                       placeholder="Interval seconds"
-                      className="bg-black/40 border border-gold/15 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-gold/40"
+                      className="bg-[#0f1428]/40 border border-gold/15 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-gold/40"
                     />
                     <select
                       value={agentForm.alertThreshold}
                       onChange={(e) => setAgentForm((prev) => ({ ...prev, alertThreshold: e.target.value }))}
-                      className="bg-black/40 border border-gold/15 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-gold/40"
+                      className="bg-[#0f1428]/40 border border-gold/15 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-gold/40"
                     >
                       {['low', 'moderate', 'medium', 'high', 'critical'].map((severity) => <option key={severity} value={severity}>{severity}</option>)}
                     </select>
@@ -1376,7 +1376,7 @@ npm run agent:watch`;
                     <div className="min-w-0 flex-1">
                       <h3 className="text-xs font-black uppercase tracking-[0.18em] text-yellow-300 mb-2">One-Time Agent Token</h3>
                       <p className="text-xs text-yellow-100/70 mb-3">Copy this token now. It is not recoverable after this page state is cleared.</p>
-                      <div className="rounded-lg border border-yellow-500/20 bg-black/50 p-3 font-mono text-[11px] text-yellow-100 break-all">{oneTimeAgentToken.token}</div>
+                      <div className="rounded-lg border border-yellow-500/20 bg-[#0f1428]/50 p-3 font-mono text-[11px] text-yellow-100 break-all">{oneTimeAgentToken.token}</div>
                       <div className="mt-3 flex gap-2">
                         <button onClick={() => copyPlainText(oneTimeAgentToken.token, 'one-time-token')} className="px-3 py-2 rounded-lg border border-yellow-500/30 text-[10px] font-black uppercase tracking-wider text-yellow-300 hover:bg-yellow-500/10 flex items-center gap-2">
                           <Copy className="h-3.5 w-3.5" /> {copiedCommand === 'one-time-token' ? 'Copied' : 'Copy Token'}
@@ -1392,7 +1392,7 @@ npm run agent:watch`;
             </div>
 
             <div className="space-y-4">
-              <div className="rounded-xl border border-gold/15 bg-black/50 backdrop-blur-xl p-5">
+              <div className="rounded-xl border border-gold/15 bg-[#0f1428]/50 backdrop-blur-xl p-5">
                 <h3 className="text-xs font-black uppercase tracking-[0.18em] text-white/60 mb-4 flex items-center gap-2">
                   <ClipboardCheck className="h-4 w-4 text-gold" /> Agent Setup Workflow
                 </h3>
@@ -1408,14 +1408,14 @@ npm run agent:watch`;
                       </div>
                       <p className="text-xs text-white/45 leading-relaxed mb-2">{step.description}</p>
                       <div className="text-[10px] text-white/35 mb-3"><span className="font-black text-white/50">Action:</span> {step.action}</div>
-                      <div className="rounded-md bg-black/50 border border-gold/10 p-2 font-mono text-[10px] text-gold/70 break-all">{step.snippet}</div>
+                      <div className="rounded-md bg-[#0f1428]/50 border border-gold/10 p-2 font-mono text-[10px] text-gold/70 break-all">{step.snippet}</div>
                       <div className="mt-2 text-[10px] text-white/35">{step.message}</div>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div className="rounded-xl border border-gold/15 bg-black/50 backdrop-blur-xl p-5">
+              <div className="rounded-xl border border-gold/15 bg-[#0f1428]/50 backdrop-blur-xl p-5">
                 <h3 className="text-xs font-black uppercase tracking-[0.18em] text-white/60 mb-4 flex items-center gap-2">
                   <Terminal className="h-4 w-4 text-gold" /> Installation Commands
                 </h3>
@@ -1449,7 +1449,7 @@ npm run agent:watch`;
           </div>
 
           <div className="grid xl:grid-cols-[minmax(0,1fr)_420px] gap-6">
-            <div className="rounded-xl border border-gold/15 bg-black/50 backdrop-blur-xl overflow-hidden">
+            <div className="rounded-xl border border-gold/15 bg-[#0f1428]/50 backdrop-blur-xl overflow-hidden">
               <div className="px-5 py-4 border-b border-gold/10 flex flex-col md:flex-row md:items-center justify-between gap-3">
                 <h3 className="text-xs font-black uppercase tracking-[0.18em] text-white/60 flex items-center gap-2">
                   <Server className="h-4 w-4 text-gold" /> Registered Agents
@@ -1511,7 +1511,7 @@ npm run agent:watch`;
             </div>
 
             <div className="space-y-4">
-              <div className="rounded-xl border border-gold/15 bg-black/50 backdrop-blur-xl p-5">
+              <div className="rounded-xl border border-gold/15 bg-[#0f1428]/50 backdrop-blur-xl p-5">
                 <h3 className="text-xs font-black uppercase tracking-[0.18em] text-white/60 mb-4 flex items-center gap-2">
                   <Activity className="h-4 w-4 text-gold" /> Connection Status
                 </h3>
@@ -1543,7 +1543,7 @@ npm run agent:watch`;
                 )}
               </div>
 
-              <div className="rounded-xl border border-gold/15 bg-black/50 backdrop-blur-xl p-5">
+              <div className="rounded-xl border border-gold/15 bg-[#0f1428]/50 backdrop-blur-xl p-5">
                 <h3 className="text-xs font-black uppercase tracking-[0.18em] text-white/60 mb-4 flex items-center gap-2">
                   <Terminal className="h-4 w-4 text-gold" /> Recent Telemetry
                 </h3>
@@ -1578,7 +1578,7 @@ npm run agent:watch`;
           </div>
 
           <div className="grid lg:grid-cols-2 gap-6">
-            <div className="rounded-xl border border-gold/15 bg-black/50 backdrop-blur-xl p-5">
+            <div className="rounded-xl border border-gold/15 bg-[#0f1428]/50 backdrop-blur-xl p-5">
               <h3 className="text-xs font-black uppercase tracking-[0.18em] text-white/60 mb-4 flex items-center gap-2">
                 <Lock className="h-4 w-4 text-gold" /> Security Notes
               </h3>
@@ -1596,7 +1596,7 @@ npm run agent:watch`;
               </div>
             </div>
 
-            <div className="rounded-xl border border-gold/15 bg-black/50 backdrop-blur-xl p-5">
+            <div className="rounded-xl border border-gold/15 bg-[#0f1428]/50 backdrop-blur-xl p-5">
               <h3 className="text-xs font-black uppercase tracking-[0.18em] text-white/60 mb-4 flex items-center gap-2">
                 <FileWarning className="h-4 w-4 text-gold" /> Troubleshooting
               </h3>
@@ -1625,7 +1625,7 @@ npm run agent:watch`;
 
       {activeTab === 'settings' && (
         <div className="space-y-6">
-          <div className="rounded-xl border border-gold/15 bg-black/50 backdrop-blur-xl p-5">
+          <div className="rounded-xl border border-gold/15 bg-[#0f1428]/50 backdrop-blur-xl p-5">
             <h2 className="text-xs font-black uppercase tracking-[0.2em] text-white/60 mb-4 flex items-center gap-2">
               <Settings className="h-4 w-4 text-gold" /> Scanner Settings
             </h2>
@@ -1645,7 +1645,7 @@ npm run agent:watch`;
             </div>
           </div>
 
-          <div className="rounded-xl border border-gold/15 bg-black/50 backdrop-blur-xl p-5">
+          <div className="rounded-xl border border-gold/15 bg-[#0f1428]/50 backdrop-blur-xl p-5">
             <h3 className="text-xs font-black uppercase tracking-[0.18em] text-white/60 mb-4 flex items-center gap-2">
               <Code2 className="h-4 w-4 text-gold" /> Tenant API References
             </h3>
@@ -1671,7 +1671,7 @@ npm run agent:watch`;
         <div className="space-y-6">
           <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
             {kpis.map((kpi, index) => (
-              <motion.div key={kpi.label} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.04 }} className="p-4 rounded-xl border border-gold/12 bg-black/50 backdrop-blur-xl">
+              <motion.div key={kpi.label} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.04 }} className="p-4 rounded-xl border border-gold/12 bg-[#0f1428]/50 backdrop-blur-xl">
                 <div className="flex items-center gap-1.5 mb-1.5">
                   <kpi.icon className="h-3 w-3 text-gold/40" />
                   <span className="text-[9px] font-black uppercase tracking-[0.15em] text-white/35">{kpi.label}</span>
@@ -1680,7 +1680,7 @@ npm run agent:watch`;
               </motion.div>
             ))}
           </div>
-          <div className="rounded-xl border border-gold/15 bg-black/50 p-5">
+          <div className="rounded-xl border border-gold/15 bg-[#0f1428]/50 p-5">
             <h2 className="text-xs font-black uppercase tracking-[0.2em] text-white/60 mb-3">Defensive Scanner Scope</h2>
             <div className="grid md:grid-cols-3 gap-3 text-xs text-white/45">
               <div className="rounded-lg border border-gold/10 bg-white/[0.02] p-3">Public TLS certificate, protocol, cipher, API header, web crypto, GitHub code-pattern, and SSH public metadata checks.</div>
@@ -1701,11 +1701,11 @@ npm run agent:watch`;
                 placeholder="Search algorithms, evidence, locations..."
                 value={searchQ}
                 onChange={(e) => setSearchQ(e.target.value)}
-                className="w-full bg-black/40 border border-gold/15 rounded-lg py-2.5 pl-10 pr-4 text-sm focus:outline-none focus:border-gold/40 transition-colors text-white placeholder-white/20"
+                className="w-full bg-[#0f1428]/40 border border-gold/15 rounded-lg py-2.5 pl-10 pr-4 text-sm focus:outline-none focus:border-gold/40 transition-colors text-white placeholder-white/20"
               />
             </div>
             {['critical', 'high', 'medium', 'low', 'safe'].map((severity) => (
-              <button key={severity} onClick={() => setSevFilter(sevFilter === severity ? null : severity)} className={`text-[10px] font-black uppercase tracking-wider px-3 py-2 rounded-lg border transition-all ${sevFilter === severity ? `${sevColor(severity).br} ${sevColor(severity).b} ${sevColor(severity).t}` : 'border-gold/10 bg-black/30 text-white/35 hover:border-gold/25'}`}>
+              <button key={severity} onClick={() => setSevFilter(sevFilter === severity ? null : severity)} className={`text-[10px] font-black uppercase tracking-wider px-3 py-2 rounded-lg border transition-all ${sevFilter === severity ? `${sevColor(severity).br} ${sevColor(severity).b} ${sevColor(severity).t}` : 'border-gold/10 bg-[#0f1428]/30 text-white/35 hover:border-gold/25'}`}>
                 {severity} ({findings.filter((finding) => finding.threatLevel.toLowerCase() === severity).length})
               </button>
             ))}
@@ -1742,7 +1742,7 @@ npm run agent:watch`;
                   </button>
                   <AnimatePresence>
                     {isExpanded && (
-                      <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="border-t border-gold/10 px-4 py-4 bg-black/30">
+                      <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="border-t border-gold/10 px-4 py-4 bg-[#0f1428]/30">
                         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
                           <div className="p-2.5 rounded-lg border border-gold/10 bg-white/[0.015]">
                             <div className="text-[8px] font-black uppercase tracking-wider text-white/25 mb-0.5">Category</div>
@@ -1781,7 +1781,7 @@ npm run agent:watch`;
       )}
 
       {activeTab === 'logs' && (
-        <div className="rounded-xl border border-gold/15 bg-black/80 backdrop-blur-xl overflow-hidden flex flex-col h-[600px]">
+        <div className="rounded-xl border border-gold/15 bg-[#0f1428]/80 backdrop-blur-xl overflow-hidden flex flex-col h-[600px]">
           <div className="flex items-center gap-2 px-4 py-2.5 border-b border-gold/10 bg-gold/[0.03] shrink-0">
             <Terminal className="h-3.5 w-3.5 text-gold/50" />
             <span className="text-[10px] font-black uppercase tracking-[0.15em] text-white/50">Scanner Telemetry</span>
@@ -1818,7 +1818,7 @@ npm run agent:watch`;
                 No authorized scan history available
               </div>
             ) : history.map((entry) => (
-              <div key={entry.scanId} className="p-4 rounded-xl border border-gold/15 bg-black/40 backdrop-blur-xl hover:border-gold/30 transition-colors">
+              <div key={entry.scanId} className="p-4 rounded-xl border border-gold/15 bg-[#0f1428]/40 backdrop-blur-xl hover:border-gold/30 transition-colors">
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-3">
                   <div className="flex items-center gap-3">
                     <History className="h-5 w-5 text-gold/60" />
@@ -1828,19 +1828,19 @@ npm run agent:watch`;
                     </div>
                   </div>
                   <div className="flex items-center gap-3 flex-wrap">
-                    <div className="px-3 py-1.5 rounded bg-black/40 border border-white/5 text-center">
+                    <div className="px-3 py-1.5 rounded bg-[#0f1428]/40 border border-white/5 text-center">
                       <div className="text-sm font-black text-white">{entry.detectedComponents}</div>
                       <div className="text-[8px] uppercase tracking-wider text-white/30 font-bold">Components</div>
                     </div>
-                    <div className="px-3 py-1.5 rounded bg-black/40 border border-red-500/10 text-center">
+                    <div className="px-3 py-1.5 rounded bg-[#0f1428]/40 border border-red-500/10 text-center">
                       <div className="text-sm font-black text-red-400">{entry.vulnerableFindings}</div>
                       <div className="text-[8px] uppercase tracking-wider text-white/30 font-bold">Vulnerable</div>
                     </div>
-                    <div className="px-3 py-1.5 rounded bg-black/40 border border-green-500/10 text-center">
+                    <div className="px-3 py-1.5 rounded bg-[#0f1428]/40 border border-green-500/10 text-center">
                       <div className="text-sm font-black text-green-400">{entry.pqcReadyFindings}</div>
                       <div className="text-[8px] uppercase tracking-wider text-white/30 font-bold">PQC Ready</div>
                     </div>
-                    <div className="px-3 py-1.5 rounded bg-black/40 border border-gold/10 text-center">
+                    <div className="px-3 py-1.5 rounded bg-[#0f1428]/40 border border-gold/10 text-center">
                       <div className="text-sm font-black text-gold">{entry.qScore ?? 'N/A'}</div>
                       <div className="text-[8px] uppercase tracking-wider text-white/30 font-bold">Q-Score</div>
                     </div>
