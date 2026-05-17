@@ -64,7 +64,7 @@ export default function Vulnerabilities() {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: i * 0.05 }}
-            className="p-5 border border-gold/20 bg-[#0f1428]/40 backdrop-blur-md rounded-xl flex items-center justify-between group hover:border-red-500/40 transition-colors"
+            className="p-5 border rounded-xl flex items-center justify-between group hover:border-red-500/40 transition-colors glass-panel"
           >
             <div className="flex items-center gap-4">
               <div className="h-10 w-10 rounded-full bg-red-500/10 flex items-center justify-center text-red-500">

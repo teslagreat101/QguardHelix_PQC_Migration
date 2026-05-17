@@ -164,7 +164,7 @@ function qrImageSource(value: string) {
 
 function SectionCard({ children, className = '' }: { children: ReactNode; className?: string }) {
   return (
-    <div className={`rounded-lg border border-gold/15 bg-[#0f1428]/45 p-5 backdrop-blur-xl shadow-[0_0_30px_rgba(0,0,0,0.25)] ${className}`}>
+    <div className={`rounded-lg border p-5 shadow-[0_0_30px_rgba(0,0,0,0.25)] ${className} glass-panel`}>
       {children}
     </div>
   )
@@ -290,7 +290,7 @@ function ProfileTab({
           style={profile.bannerUrl ? { backgroundImage: `linear-gradient(90deg,rgba(0,0,0,0.55),rgba(0,0,0,0.2)),url(${profile.bannerUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}
         >
           <div className="absolute bottom-4 left-5 flex items-end gap-4">
-            <div className="grid h-24 w-24 place-items-center overflow-hidden rounded-lg border border-gold/35 bg-[#0f1428]/60 text-2xl font-black text-gold shadow-[0_0_26px_rgba(212,175,55,0.18)]">
+            <div className="grid h-24 w-24 place-items-center overflow-hidden rounded-lg border text-2xl font-black text-gold shadow-[0_0_26px_rgba(212,175,55,0.18)] glass-panel">
               {profile.avatarUrl ? <img src={profile.avatarUrl} alt="Profile avatar" className="h-full w-full object-cover" /> : initials}
             </div>
             <div className="pb-1">
@@ -598,7 +598,7 @@ function SecurityTab({
               </div>
               <div className="grid gap-2 sm:grid-cols-2">
                 {recoveryCodes.map((code) => (
-                  <code key={code} className="rounded border border-white/10 bg-[#0f1428]/50 px-3 py-2 text-xs text-white/85">{code}</code>
+                  <code key={code} className="rounded border border-white/10 px-3 py-2 text-xs text-white/85 glass-panel">{code}</code>
                 ))}
               </div>
             </div>
@@ -1000,7 +1000,7 @@ export default function ProfileSettingsPage() {
 
   return (
     <div className="min-h-screen space-y-6 p-6 lg:p-8">
-      <header className="relative overflow-hidden rounded-lg border border-gold/15 bg-[#0f1428]/55 p-5 backdrop-blur-xl">
+      <header className="relative overflow-hidden rounded-lg border p-5 glass-panel">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_12%_10%,rgba(212,175,55,0.18),transparent_28%),radial-gradient(circle_at_88%_12%,rgba(0,243,255,0.12),transparent_24%)]" />
         <div className="relative z-10 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div>

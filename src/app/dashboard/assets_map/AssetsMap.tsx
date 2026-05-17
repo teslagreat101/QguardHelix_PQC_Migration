@@ -126,12 +126,12 @@ export default function AssetsMap() {
             placeholder="Search assets, algorithms, domains, IP addresses..."
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
-            className="w-full bg-[#0f1428]/40 border border-gold/20 rounded-lg py-2.5 pl-10 pr-4 text-sm focus:outline-none focus:border-gold/50 transition-colors text-white placeholder-white/25"
+            className="w-full border rounded-lg py-2.5 pl-10 pr-4 text-sm focus:outline-none focus:transition-colors text-white placeholder-white/25 glass-panel"
           />
         </div>
         <div className="flex gap-2 flex-wrap">
           {['critical', 'high', 'medium', 'low'].map((level) => (
-            <button key={level} onClick={() => setRiskFilter(riskFilter === level ? null : level)} className={`px-3 py-2 bg-[#0f1428]/40 border rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors flex items-center gap-2 ${riskFilter === level ? 'border-gold/50 text-gold bg-gold/10' : 'border-gold/20 text-white/45 hover:text-white/70'}`}>
+            <button key={level} onClick={() => setRiskFilter(riskFilter === level ? null : level)} className={`px-3 py-2 border rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors flex items-center gap-2 ${riskFilter === level ? 'text-gold bg-gold/10' : 'text-white/45 hover:text-white/70'} glass-panel`}>
               <Filter className="h-3.5 w-3.5" /> {level}
             </button>
           ))}
@@ -145,7 +145,7 @@ export default function AssetsMap() {
           { label: 'Crypto Components', value: assets.reduce((sum, asset) => sum + asset.findingsCount, 0), color: 'text-gold', icon: Shield },
           { label: 'PQC Ready', value: assets.filter((asset) => asset.findingsCount > 0 && asset.vulnerableCount === 0).length, color: 'text-green-400', icon: Shield },
         ].map((item) => (
-          <div key={item.label} className="p-4 rounded-xl border border-gold/12 bg-[#0f1428]/50 backdrop-blur-xl">
+          <div key={item.label} className="p-4 rounded-xl border glass-panel">
             <div className="flex items-center gap-2 mb-2">
               <item.icon className="h-3.5 w-3.5 text-gold/50" />
               <span className="text-[10px] font-black uppercase tracking-[0.15em] text-white/40">{item.label}</span>
@@ -155,7 +155,7 @@ export default function AssetsMap() {
         ))}
       </div>
 
-      <div className="border border-gold/20 bg-[#0f1428]/40 backdrop-blur-md rounded-xl overflow-hidden">
+      <div className="border rounded-xl overflow-hidden glass-panel">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse min-w-[980px]">
             <thead>

@@ -181,7 +181,7 @@ export default function QuantumGovernancePage() {
                         <input 
                           type="text" 
                           placeholder="Search cryptographic assets..." 
-                          className="w-full bg-[#0f1428]/40 border border-white/10 rounded-lg py-2 pl-10 pr-4 text-xs text-white placeholder:text-white/20 focus:outline-none focus:border-gold/50"
+                          className="w-full border border-white/10 rounded-lg py-2 pl-10 pr-4 text-xs text-white placeholder:text-white/20 focus:outline-none focus: glass-panel"
                         />
                       </div>
                       <div className="flex items-center gap-3">
@@ -726,7 +726,7 @@ export default function QuantumGovernancePage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-4 rounded-xl bg-[#0f1428]/40 border border-white/5 space-y-3">
+            <div className="p-4 rounded-xl border border-white/5 space-y-3 glass-panel">
               <h6 className="text-[10px] font-black uppercase tracking-widest text-gold/60">Top Deficit Drivers</h6>
               <ul className="space-y-2">
                 {[
@@ -741,7 +741,7 @@ export default function QuantumGovernancePage() {
                 ))}
               </ul>
             </div>
-            <div className="p-4 rounded-xl bg-[#0f1428]/40 border border-white/5 flex flex-col justify-center gap-4">
+            <div className="p-4 rounded-xl border border-white/5 flex flex-col justify-center gap-4 glass-panel">
               <p className="text-[10px] text-white/40 leading-relaxed">
                 Until governance, accountability, and cryptographic lifecycle management are addressed, PQC slogans do not land.
               </p>

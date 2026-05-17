@@ -111,7 +111,7 @@ export default function DashboardLayout() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setMobileOpen(false)}
-            className="fixed inset-0 bg-[#0f1428]/60 backdrop-blur-sm z-40 lg:hidden"
+            className="fixed inset-0 z-40 lg:hidden glass-panel"
           />
         )}
       </AnimatePresence>

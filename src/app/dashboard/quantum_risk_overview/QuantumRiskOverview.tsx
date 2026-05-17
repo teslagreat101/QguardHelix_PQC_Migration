@@ -234,7 +234,7 @@ export default function QuantumRiskOverview() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.08 }}
-            className="relative overflow-hidden rounded-xl border border-gold/15 bg-[#0f1428]/50 backdrop-blur-xl p-5 group hover:border-gold/40 transition-all duration-500"
+            className="relative overflow-hidden rounded-xl border p-5 group hover:transition-all duration-500 glass-panel"
           >
             <div className="absolute inset-0 bg-gradient-to-br from-gold/[0.03] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
             <div className="absolute top-3 right-3 opacity-[0.06] group-hover:opacity-[0.12] transition-opacity">
@@ -259,7 +259,7 @@ export default function QuantumRiskOverview() {
       {/* Main Content Grid */}
       <div className="grid lg:grid-cols-5 gap-6">
         {/* 3D Globe */}
-        <div className="lg:col-span-2 rounded-xl border border-gold/15 bg-[#0f1428]/50 backdrop-blur-xl p-6 relative overflow-hidden">
+        <div className="lg:col-span-2 rounded-xl border p-6 relative overflow-hidden glass-panel">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(212,175,55,0.06),transparent_60%)]" />
           <h2 className="text-xs font-black uppercase tracking-[0.2em] text-white/60 mb-4 relative z-10">
             <Globe className="h-3.5 w-3.5 inline mr-2 text-gold/60" />
@@ -279,7 +279,7 @@ export default function QuantumRiskOverview() {
         </div>
 
         {/* Attack Graph */}
-        <div className="lg:col-span-3 rounded-xl border border-gold/15 bg-[#0f1428]/50 backdrop-blur-xl p-6 relative overflow-hidden">
+        <div className="lg:col-span-3 rounded-xl border p-6 relative overflow-hidden glass-panel">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(0,243,255,0.04),transparent_50%)]" />
           <div className="flex items-center justify-between mb-4 relative z-10">
             <h2 className="text-xs font-black uppercase tracking-[0.2em] text-white/60">
@@ -290,7 +290,7 @@ export default function QuantumRiskOverview() {
               {ATTACK_PATHS.length} Active Paths
             </span>
           </div>
-          <div className="relative z-10 h-[340px] rounded-lg border border-gold/10 bg-[#0f1428]/30 overflow-hidden">
+          <div className="relative z-10 h-[340px] rounded-lg border overflow-hidden glass-panel">
             <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
               {/* Attack path lines */}
               {ATTACK_PATHS.map((path, idx) => {
@@ -363,7 +363,7 @@ export default function QuantumRiskOverview() {
       {/* Bottom Row */}
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Risk Score Gauge */}
-        <div className="rounded-xl border border-gold/15 bg-[#0f1428]/50 backdrop-blur-xl p-6 relative overflow-hidden">
+        <div className="rounded-xl border p-6 relative overflow-hidden glass-panel">
           <h2 className="text-xs font-black uppercase tracking-[0.2em] text-white/60 mb-6">
             <Crosshair className="h-3.5 w-3.5 inline mr-2 text-gold/60" />
             Composite Risk Gauge
@@ -412,7 +412,7 @@ export default function QuantumRiskOverview() {
         </div>
 
         {/* Live Threat Intelligence Feed */}
-        <div className="lg:col-span-2 rounded-xl border border-gold/15 bg-[#0f1428]/50 backdrop-blur-xl p-6 relative overflow-hidden">
+        <div className="lg:col-span-2 rounded-xl border p-6 relative overflow-hidden glass-panel">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_0%_0%,rgba(212,175,55,0.04),transparent_40%)]" />
           <h2 className="text-xs font-black uppercase tracking-[0.2em] text-white/60 mb-4 relative z-10">
             <Radio className="h-3.5 w-3.5 inline mr-2 text-gold/60 animate-pulse" />

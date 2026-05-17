@@ -263,7 +263,7 @@ export default function QuantumQrngPage() {
                   </div>
                   
                   <div className="flex-grow space-y-4 font-mono text-[11px]">
-                    <div className="p-4 rounded-xl bg-[#0f1428]/40 border border-white/5 font-mono text-gold/80 h-[400px] overflow-y-auto no-scrollbar space-y-2">
+                    <div className="p-4 rounded-xl border border-white/5 font-mono text-gold/80 h-[400px] overflow-y-auto no-scrollbar space-y-2 glass-panel">
                       <p className="text-muted-foreground">[SYS] Initializing SSE listener...</p>
                       <p className="text-green-500">[CONN] Telemetry stream established.</p>
                       <p className="text-white/60">[EVENT] Source HW-01 ping: 1.2ms</p>
@@ -453,7 +453,7 @@ export default function QuantumQrngPage() {
                         </div>
                         
                         <div className="space-y-4">
-                          <div className="p-3 rounded-xl bg-[#0f1428]/40 border border-white/5 font-mono text-xs break-all relative group/inner">
+                          <div className="p-3 rounded-xl border border-white/5 font-mono text-xs break-all relative group/inner glass-panel">
                             <p className={`${revealMap[item.id] ? 'text-white' : 'text-white/20 blur-sm'} transition-all duration-300`}>
                               {revealMap[item.id] ? item.fingerprint.repeat(4) : item.maskedPreview}
                             </p>

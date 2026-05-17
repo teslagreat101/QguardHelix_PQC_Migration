@@ -66,7 +66,7 @@ export default function RecommendationsPanel({ summary, loading }: Props) {
   }
 
   return (
-    <div className="rounded-xl border border-gold/15 bg-[#0f1428]/40 backdrop-blur-md p-6">
+    <div className="rounded-xl border p-6 glass-panel">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-sm font-black uppercase tracking-[0.2em] text-white/80 flex items-center gap-2">
           <Sparkles className="h-4 w-4 text-gold" />

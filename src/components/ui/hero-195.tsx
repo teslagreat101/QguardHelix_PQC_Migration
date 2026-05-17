@@ -12,7 +12,7 @@ export const Hero195 = () => {
   const navigate = useNavigate();
 
   return (
-    <section className="relative py-24 overflow-hidden bg-cyber-black">
+    <section className="relative py-24 overflow-hidden bg-transparent">
       {/* Background Decorative Elements */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full pointer-events-none overflow-hidden">
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-gold/5 blur-[120px] rounded-full" />

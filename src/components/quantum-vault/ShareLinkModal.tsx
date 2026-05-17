@@ -181,11 +181,7 @@ export default function ShareLinkModal({
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       background: 'rgba(0, 0, 0, 0.7)', backdropFilter: 'blur(4px)',
     }} onClick={(e) => { if (e.target === e.currentTarget) handleClose() }}>
-      <div style={{
-        background: 'var(--qg-surface, #0d1117)', border: '1px solid var(--qg-border, #1e293b)',
-        borderRadius: 'var(--radius-lg, 12px)', padding: 28, maxWidth: 520, width: '90%',
-        boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)',
-      }}>
+      <div className="glass-panel" style={{ borderRadius: "var(--radius-lg, 12px)", padding: 28, maxWidth: 520, width: "90%" }}>
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
           <h3 style={{ fontSize: 16, margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>

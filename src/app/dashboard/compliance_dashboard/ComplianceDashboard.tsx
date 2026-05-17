@@ -456,7 +456,7 @@ function MiniAnalyticsGraph() {
   const points = '4,54 34,40 63,47 93,28 122,35 151,20 181,27 210,8';
 
   return (
-    <div className="relative h-24 min-w-[210px] overflow-hidden rounded-lg border border-[#FFD36B]/10 bg-[#0f1428]/15 p-3">
+    <div className="relative h-24 min-w-[210px] overflow-hidden rounded-lg border border-[#FFD36B]/10 p-3 glass-panel">
       <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,211,107,0.08),transparent)]" />
       <svg className="relative h-full w-full" viewBox="0 0 220 72" aria-label="Policy trend graph">
         {[24, 48, 72, 96, 120, 144, 168, 192].map((x) => (
@@ -478,7 +478,7 @@ function OverviewCard() {
     <GlassPanel delay={0.08} className="min-h-[260px]">
       <PanelTitle icon={Shield} title="Quantum Compliance Overview" />
       <div className="grid gap-5 xl:grid-cols-[240px_1fr]">
-        <div className="flex min-w-0 items-center justify-center rounded-lg border border-[#FFD36B]/10 bg-[#0f1428]/10 px-2 py-3">
+        <div className="flex min-w-0 items-center justify-center rounded-lg border border-[#FFD36B]/10 px-2 py-3 glass-panel">
           <GoldShieldBadge />
         </div>
 
@@ -503,7 +503,7 @@ function OverviewCard() {
               { label: 'Pending', value: '0', tone: 'muted' as Tone },
               { label: 'Total Policies', value: '210', tone: 'gold' as Tone },
             ].map((item) => (
-              <div key={item.label} className="rounded-lg border border-[#FFD36B]/10 bg-[#0f1428]/20 p-3 text-center">
+              <div key={item.label} className="rounded-lg border border-[#FFD36B]/10 p-3 text-center glass-panel">
                 <div className="text-[11px] font-bold uppercase text-white/60">{item.label}</div>
                 <div className={cx('mt-2 font-mono text-3xl font-black', toneClasses[item.tone])}>{item.value}</div>
                 <div
@@ -532,13 +532,13 @@ function SecurityStatusCard() {
           <div className="text-lg font-black uppercase text-[#FFD36B]">Q-Security Status: Optimal</div>
           <div className="mt-4 font-mono text-xl text-[#FFE8A8]">100% Compliance</div>
         </div>
-        <div className="mr-1 shrink-0 self-start rounded-lg border border-[#FFD36B]/12 bg-[#0f1428]/10 p-1.5">
+        <div className="mr-1 shrink-0 self-start rounded-lg border border-[#FFD36B]/12 p-1.5 glass-panel">
           <GoldShieldBadge compact showMetric={false} />
         </div>
       </div>
 
       <div className="mt-5">
-        <div className="h-5 overflow-hidden rounded-full border border-[#FFD36B]/30 bg-[#0f1428]/35 p-0.5 shadow-[inset_0_0_16px_rgba(0,0,0,0.65)]">
+        <div className="h-5 overflow-hidden rounded-full border border-[#FFD36B]/30 p-0.5 shadow-[inset_0_0_16px_rgba(0,0,0,0.65)] glass-panel">
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: '100%' }}
@@ -600,7 +600,7 @@ function ChecklistPanel() {
 
       <div className="grid items-center gap-6 xl:grid-cols-[minmax(320px,0.95fr)_minmax(360px,1.05fr)]">
         <div className="relative min-w-0">
-          <div className="relative mx-auto aspect-[1484/1060] w-full max-w-[460px] overflow-hidden rounded-lg border border-[#FFD36B]/18 bg-[#0f1428]/18 p-2 shadow-[inset_0_0_28px_rgba(255,211,107,0.05),0_0_28px_rgba(255,211,107,0.10)]">
+          <div className="relative mx-auto aspect-[1484/1060] w-full max-w-[460px] overflow-hidden rounded-lg border border-[#FFD36B]/18 p-2 shadow-[inset_0_0_28px_rgba(255,211,107,0.05),0_0_28px_rgba(255,211,107,0.10)] glass-panel">
             <div className="pointer-events-none absolute inset-0 rounded-lg bg-[radial-gradient(circle_at_50%_74%,rgba(255,211,107,0.14),transparent_58%)]" />
             <img
               src="/compliance.png"
@@ -612,7 +612,7 @@ function ChecklistPanel() {
           </div>
         </div>
 
-        <div className="rounded-lg border border-[#FFD36B]/10 bg-[#0f1428]/18 p-3">
+        <div className="rounded-lg border border-[#FFD36B]/10 p-3 glass-panel">
           {checklist.map((item) => (
             <div
               key={item.label}
@@ -789,7 +789,7 @@ function ComplianceDetailModal({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[80] grid place-items-center bg-[#0f1428]/70 p-4 backdrop-blur-md"
+          className="fixed inset-0 z-[80] grid place-items-center p-4 glass-panel"
           onClick={onClose}
         >
           <motion.div
@@ -835,7 +835,7 @@ function ComplianceDetailModal({
               ))}
             </div>
 
-            <div className="mt-6 rounded-lg border border-[#FFD36B]/10 bg-[#0f1428]/20 p-4">
+            <div className="mt-6 rounded-lg border border-[#FFD36B]/10 p-4 glass-panel">
               <div className="mb-3 text-xs font-black uppercase text-[#FFE8A8]">Executive Notes</div>
               <div className="space-y-3">
                 {content.bullets.map((bullet) => (
@@ -894,7 +894,7 @@ function FrameworkRadar() {
         );
       })}
       <div className="absolute inset-0 grid place-items-center">
-        <div className="grid h-16 w-16 place-items-center rounded-lg border border-[#FFD36B]/34 bg-[#0f1428]/48 text-[#FFD36B] shadow-[inset_0_0_20px_rgba(255,211,107,0.10),0_0_28px_rgba(255,211,107,0.22)]">
+        <div className="grid h-16 w-16 place-items-center rounded-lg border border-[#FFD36B]/34 text-[#FFD36B] shadow-[inset_0_0_20px_rgba(255,211,107,0.10),0_0_28px_rgba(255,211,107,0.22)] glass-panel">
           <Landmark className="h-9 w-9" />
         </div>
       </div>
@@ -993,7 +993,7 @@ function PolicyTrendPanel({ onOpen }: { onOpen: () => void }) {
     <GlassPanel delay={0.4} className="min-h-[350px]">
       <PanelTitle icon={LineChart} title="Policy Compliance Over Time" />
 
-      <div className="rounded-lg border border-[#FFD36B]/10 bg-[#0f1428]/18 p-2">
+      <div className="rounded-lg border border-[#FFD36B]/10 p-2 glass-panel">
         <svg className="h-[220px] w-full" viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Policy compliance trend">
           {[0, 25, 50, 75, 100].map((tick) => {
             const y = yFor(tick);
@@ -1191,7 +1191,7 @@ function ComplianceRequirementsPanel({ onOpen, className }: { onOpen: () => void
 
 function CapabilityRail() {
   return (
-    <div className="grid overflow-hidden rounded-lg border border-[#FFD36B]/18 bg-[#0f1428]/42 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_0_30px_rgba(255,211,107,0.10)] sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
+    <div className="grid overflow-hidden rounded-lg border border-[#FFD36B]/18 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_0_30px_rgba(255,211,107,0.10)] sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6 glass-panel">
       {capabilityHighlights.map((item) => {
         const Icon = item.icon;
 
@@ -1214,7 +1214,7 @@ function CapabilityRail() {
 function PolicyIntelligenceSection({ onOpen }: { onOpen: (key: ComplianceModalKey) => void }) {
   return (
     <section className="space-y-4" aria-labelledby="policy-intelligence-heading">
-      <div className="flex flex-col gap-3 rounded-lg border border-[#FFD36B]/14 bg-[#0f1428]/16 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 rounded-lg border border-[#FFD36B]/14 px-4 py-3 sm:flex-row sm:items-center sm:justify-between glass-panel">
         <div className="min-w-0">
           <div className="text-[11px] font-black uppercase text-[#FFD36B]/74">Governance Intelligence</div>
           <h2 id="policy-intelligence-heading" className="mt-1 text-xl font-black uppercase leading-tight text-[#FFE8A8]">
@@ -1310,7 +1310,7 @@ function Header() {
         <button
           type="button"
           title="Compliance notifications"
-          className="inline-flex h-12 items-center gap-2 rounded-lg border border-[#FFD36B]/22 bg-[#0f1428]/58 px-4 text-[#FFD36B] backdrop-blur-xl transition hover:border-[#FFD36B]/45 hover:bg-[#FFD36B]/10"
+          className="inline-flex h-12 items-center gap-2 rounded-lg border border-[#FFD36B]/22 px-4 text-[#FFD36B] transition hover:border-[#FFD36B]/45 hover:bg-[#FFD36B]/10 glass-panel"
         >
           <Bell className="h-5 w-5" />
           <span className="grid h-5 min-w-5 place-items-center rounded-full bg-[#FFD36B] px-1 font-mono text-xs font-black text-[#050816]">3</span>
@@ -1318,7 +1318,7 @@ function Header() {
         <button
           type="button"
           title="Administrator profile"
-          className="inline-flex h-12 items-center gap-2 rounded-lg border border-[#FFD36B]/22 bg-[#0f1428]/58 px-4 text-white/85 backdrop-blur-xl transition hover:border-[#FFD36B]/45 hover:bg-[#FFD36B]/10"
+          className="inline-flex h-12 items-center gap-2 rounded-lg border border-[#FFD36B]/22 px-4 text-white/85 transition hover:border-[#FFD36B]/45 hover:bg-[#FFD36B]/10 glass-panel"
         >
           <UserCog className="h-5 w-5 text-[#FFD36B]" />
           <span className="text-sm font-bold">SYS-ADMIN</span>
@@ -1327,7 +1327,7 @@ function Header() {
         <button
           type="button"
           title="Secure session status"
-          className="inline-flex h-12 items-center gap-2 rounded-lg border border-[#4DFF88]/22 bg-[#0f1428]/58 px-4 text-[#4DFF88] backdrop-blur-xl transition hover:border-[#4DFF88]/45 hover:bg-[#4DFF88]/10"
+          className="inline-flex h-12 items-center gap-2 rounded-lg border border-[#4DFF88]/22 px-4 text-[#4DFF88] transition hover:border-[#4DFF88]/45 hover:bg-[#4DFF88]/10 glass-panel"
         >
           <ShieldCheck className="h-5 w-5" />
           <span className="text-sm font-black">SECURE</span>

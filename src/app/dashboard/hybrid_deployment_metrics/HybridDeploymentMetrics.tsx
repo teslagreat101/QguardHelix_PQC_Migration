@@ -98,7 +98,7 @@ export default function HybridDeploymentMetrics() {
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.06 }}
-            className="p-5 rounded-xl border border-gold/12 bg-[#0f1428]/50 backdrop-blur-xl relative overflow-hidden group hover:border-gold/30 transition-all"
+            className="p-5 rounded-xl border relative overflow-hidden group hover:transition-all glass-panel"
           >
             <div className="absolute top-3 right-3 opacity-[0.06] group-hover:opacity-[0.12] transition-opacity">
               <kpi.icon className="h-12 w-12" />
@@ -168,7 +168,7 @@ export default function HybridDeploymentMetrics() {
 
         {/* Selected Region Details */}
         <div className="lg:col-span-3 space-y-4">
-          <div className="rounded-xl border border-gold/15 bg-[#0f1428]/50 backdrop-blur-xl p-6 relative overflow-hidden">
+          <div className="rounded-xl border p-6 relative overflow-hidden glass-panel">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(0,243,255,0.04),transparent_50%)]" />
             <div className="relative z-10">
               <div className="flex items-center justify-between mb-6">
@@ -222,7 +222,7 @@ export default function HybridDeploymentMetrics() {
           </div>
 
           {/* Latency Chart Visualization */}
-          <div className="rounded-xl border border-gold/15 bg-[#0f1428]/50 backdrop-blur-xl p-6 relative overflow-hidden">
+          <div className="rounded-xl border p-6 relative overflow-hidden glass-panel">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_80%,rgba(212,175,55,0.04),transparent_50%)]" />
             <div className="relative z-10">
               <div className="flex items-center justify-between mb-4">
@@ -258,7 +258,7 @@ export default function HybridDeploymentMetrics() {
           </div>
 
           {/* Comparison */}
-          <div className="rounded-xl border border-gold/15 bg-[#0f1428]/50 backdrop-blur-xl p-6">
+          <div className="rounded-xl border p-6 glass-panel">
             <h3 className="text-xs font-black uppercase tracking-[0.2em] text-white/60 mb-4">
               <GitBranch className="h-3.5 w-3.5 inline mr-2 text-gold/60" />
               Classical vs PQC Performance

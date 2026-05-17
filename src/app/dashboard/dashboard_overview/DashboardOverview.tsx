@@ -85,7 +85,7 @@ export default function DashboardOverview() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.1 }}
-            className="p-6 border border-gold/20 bg-[#0f1428]/40 backdrop-blur-md rounded-xl hover:border-gold/40 transition-colors group relative overflow-hidden"
+            className="p-6 border rounded-xl hover:transition-colors group relative overflow-hidden glass-panel"
           >
             <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
               <stat.icon className="h-16 w-16" />
@@ -107,7 +107,7 @@ export default function DashboardOverview() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Risk Exposure Map Placeholder */}
-        <div className="lg:col-span-2 border border-gold/20 bg-[#0f1428]/40 backdrop-blur-md rounded-xl p-6 h-[400px] flex flex-col">
+        <div className="lg:col-span-2 border rounded-xl p-6 h-[400px] flex flex-col glass-panel">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-sm font-bold uppercase tracking-widest text-white/80">Quantum Exposure Map</h2>
             <div className="flex gap-2">
@@ -115,7 +115,7 @@ export default function DashboardOverview() {
               <span className="text-[10px] uppercase font-bold text-white/40 tracking-wider">HNDL Risk High</span>
             </div>
           </div>
-          <div className="flex-1 rounded-lg border border-gold/10 bg-[#0f1428]/20 relative overflow-hidden flex items-center justify-center">
+          <div className="flex-1 rounded-lg border relative overflow-hidden flex items-center justify-center glass-panel">
              {/* This would be the Three.js or SVG map */}
              <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
              <div className="z-10 text-center">
@@ -130,7 +130,7 @@ export default function DashboardOverview() {
         </div>
 
         {/* Recent Events Log */}
-        <div className="border border-gold/20 bg-[#0f1428]/40 backdrop-blur-md rounded-xl p-6 h-[400px] flex flex-col">
+        <div className="border rounded-xl p-6 h-[400px] flex flex-col glass-panel">
           <h2 className="text-sm font-bold uppercase tracking-widest text-white/80 mb-6">Security Events</h2>
           <div className="flex-1 overflow-y-auto space-y-4 pr-2 custom-scrollbar">
             {[

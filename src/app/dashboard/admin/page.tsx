@@ -746,11 +746,7 @@ function EditUserDrawer({ user, actionLoading, onClose, onSave, onSubscriptionAc
       position: 'fixed', inset: 0, background: 'rgba(3, 3, 8, 0.7)',
       backdropFilter: 'blur(4px)', zIndex: 100, display: 'flex', justifyContent: 'flex-end',
     }}>
-      <div onClick={(e) => e.stopPropagation()} style={{
-        width: 440, maxWidth: '90vw', height: '100vh', background: 'var(--qg-deep)',
-        borderLeft: '1px solid var(--qg-border)', display: 'flex', flexDirection: 'column',
-        boxShadow: '-8px 0 32px rgba(0, 0, 0, 0.5)',
-      }}>
+      <div className="glass-panel" onClick={(e) => e.stopPropagation()} style={{ width: 440, maxWidth: "90vw", height: "100vh", display: "flex", flexDirection: "column" }}>
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 24px', borderBottom: '1px solid var(--qg-border)' }}>
           <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 16 }}>Edit User</h3>
@@ -859,11 +855,7 @@ function CreateUserModal({ actionLoading, onClose, onCreate }: {
       position: 'fixed', inset: 0, background: 'rgba(3, 3, 8, 0.7)',
       backdropFilter: 'blur(4px)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center',
     }}>
-      <div onClick={(e) => e.stopPropagation()} style={{
-        width: 480, maxWidth: '90vw', background: 'var(--qg-deep)',
-        border: '1px solid var(--qg-border)', borderRadius: 'var(--radius-lg)',
-        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)', maxHeight: '90vh', display: 'flex', flexDirection: 'column',
-      }}>
+      <div className="glass-panel" onClick={(e) => e.stopPropagation()} style={{ width: 480, maxWidth: "90vw", borderRadius: "var(--radius-lg)", maxHeight: "90vh", display: "flex", flexDirection: "column" }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 24px', borderBottom: '1px solid var(--qg-border)' }}>
           <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 16 }}>Create New User</h3>
           <button type="button" className="q-btn q-btn-ghost" onClick={onClose} style={{ fontSize: 18, padding: '4px 8px' }}>&times;</button>
@@ -919,11 +911,7 @@ function DeleteConfirmModal({ userId, userEmail, actionLoading, onClose, onConfi
       position: 'fixed', inset: 0, background: 'rgba(3, 3, 8, 0.7)',
       backdropFilter: 'blur(4px)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center',
     }}>
-      <div onClick={(e) => e.stopPropagation()} style={{
-        width: 480, maxWidth: '90vw', background: 'var(--qg-deep)',
-        border: '1px solid var(--qg-red)', borderRadius: 'var(--radius-lg)',
-        boxShadow: '0 8px 32px rgba(255, 45, 85, 0.15)', maxHeight: '90vh', display: 'flex', flexDirection: 'column',
-      }}>
+      <div className="glass-panel" onClick={(e) => e.stopPropagation()} style={{ width: 480, maxWidth: "90vw", border: "1px solid var(--qg-red)", borderRadius: "var(--radius-lg)", maxHeight: "90vh", display: "flex", flexDirection: "column" }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 24px', borderBottom: '1px solid rgba(255, 45, 85, 0.3)' }}>
           <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 16, color: 'var(--qg-red)' }}>⚠ Delete User</h3>
           <button type="button" className="q-btn q-btn-ghost" onClick={onClose} style={{ fontSize: 18, padding: '4px 8px' }}>&times;</button>

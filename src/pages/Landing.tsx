@@ -1460,6 +1460,55 @@ const InactionCard = ({ risk, i }: any) => {
   );
 };
 
+const QUANTUM_THREAT_SLIDES = [
+  '/slideshow/pqc1.png',
+  '/slideshow/pqc2.png',
+  '/slideshow/pqc3.png',
+  '/slideshow/pqc4.png',
+  '/slideshow/pqc5.png',
+  '/slideshow/pqc6.png'
+];
+
+function QuantumThreatSlideshow() {
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % QUANTUM_THREAT_SLIDES.length);
+    }, 10000);
+    return () => clearInterval(timer);
+  }, []);
+
+  return (
+    <div className="relative w-full aspect-[4/3] sm:aspect-[16/10] lg:aspect-video overflow-hidden bg-transparent group">
+      <AnimatePresence mode="wait">
+        <motion.img
+          key={currentIndex}
+          src={QUANTUM_THREAT_SLIDES[currentIndex]}
+          initial={{ opacity: 0, scale: 1.02, filter: "blur(8px)" }}
+          animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+          exit={{ opacity: 0, scale: 0.98, filter: "blur(8px)" }}
+          transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+          className="absolute inset-0 w-full h-full object-contain drop-shadow-[0_0_24px_rgba(212,175,55,0.15)]"
+        />
+      </AnimatePresence>
+      <div className="absolute inset-x-0 bottom-6 flex justify-center gap-4 z-20">
+        {QUANTUM_THREAT_SLIDES.map((_, idx) => (
+          <button
+            key={idx}
+            onClick={() => setCurrentIndex(idx)}
+            className={`transition-all duration-500 h-1.5 rounded-full ${
+              idx === currentIndex ? "w-10 bg-gold shadow-[0_0_16px_rgba(212,175,55,0.9)]" : "w-3 bg-white/30 hover:bg-white/60 hover:shadow-[0_0_10px_rgba(255,255,255,0.5)]"
+            }`}
+            aria-label={`Go to slide ${idx + 1}`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+
 export default function App() {
   const navigate = useNavigate();
   const [now, setNow] = useState(() => new Date());
@@ -2112,6 +2161,19 @@ export default function App() {
         <section className="py-20 relative overflow-hidden">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(212,175,55,0.06),transparent_45%)]" />
           <div className="max-w-6xl mx-auto px-6">
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              className="text-center mb-16"
+            >
+              <h2 className="text-3xl md:text-5xl font-black uppercase tracking-[0.08em] text-white">
+                QGuard Helix — <span className="text-gold gold-glow">Quantum Threat Intelligence</span>
+              </h2>
+              <p className="mt-4 text-sm md:text-base text-muted-foreground tracking-widest font-mono uppercase">
+                Preparing Enterprises for the Post-Quantum Era
+              </p>
+            </motion.div>
+
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -2122,18 +2184,9 @@ export default function App() {
               {/* Outer Glow Ring */}
               <div className="absolute -inset-1 rounded-2xl bg-gradient-to-br from-gold/25 via-gold/10 to-gold/25 blur-xl opacity-40 group-hover:opacity-80 transition-opacity duration-700 pointer-events-none" />
 
-              {/* Image Container */}
-              <div className="relative rounded-2xl overflow-hidden border border-gold/15 bg-cyber-black/40 shadow-[0_30px_100px_rgba(0,0,0,0.5)] backdrop-blur-sm group-hover:border-gold/35 group-hover:shadow-[0_30px_100px_rgba(212,175,55,0.12)] transition-all duration-700">
-                <img
-                  src="/Post_Quantum.png"
-                  alt="Post-Quantum Cryptography Migration Framework"
-                  className="w-full h-auto object-contain opacity-90 group-hover:opacity-100 transition-opacity duration-700"
-                />
-                {/* Top Gradient Vignette */}
-                <div className="absolute inset-0 bg-gradient-to-b from-cyber-black/20 via-transparent to-cyber-black/30 pointer-events-none" />
-                {/* Corner Accents */}
-                <div className="absolute top-0 left-0 w-16 h-16 border-t-2 border-l-2 border-gold/25 rounded-tl-2xl pointer-events-none" />
-                <div className="absolute bottom-0 right-0 w-16 h-16 border-b-2 border-r-2 border-gold/25 rounded-br-2xl pointer-events-none" />
+              {/* Image Container (Frame Removed) */}
+              <div className="relative w-full transition-all duration-700">
+                <QuantumThreatSlideshow />
               </div>
             </motion.div>
           </div>
@@ -2257,7 +2310,9 @@ export default function App() {
             </motion.div>
 
             <EnterpriseProtectionShowcase />
+            <div className="h-32 w-full" />
             <Hero195 />
+            <div className="h-32 w-full" />
             <QuantumSecurityUseCasesSection />
             <TestimonialsSection />
             <PricingSection />

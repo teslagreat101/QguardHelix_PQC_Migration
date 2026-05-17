@@ -117,7 +117,7 @@ export default function DriftDetection() {
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.06 }}
-            className="p-4 rounded-xl border border-gold/12 bg-[#0f1428]/50 backdrop-blur-xl group hover:border-gold/30 transition-all"
+            className="p-4 rounded-xl border group hover:transition-all glass-panel"
           >
             <div className="flex items-center gap-2 mb-2">
               <stat.icon className="h-3.5 w-3.5 text-gold/50" />
@@ -210,7 +210,7 @@ export default function DriftDetection() {
                 <motion.div
                   initial={{ height: 0, opacity: 0 }}
                   animate={{ height: 'auto', opacity: 1 }}
-                  className="border-t border-gold/10 px-4 py-4 bg-[#0f1428]/20"
+                  className="border-t px-4 py-4 glass-panel"
                 >
                   <div className="grid lg:grid-cols-3 gap-4">
                     <div className="p-3 rounded-lg border border-gold/10 bg-white/[0.02]">

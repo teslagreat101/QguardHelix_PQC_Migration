@@ -143,10 +143,9 @@ export default function MoveToModal({
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
+        className="glass-panel"
         style={{
           width: '100%', maxWidth: 420, maxHeight: '70vh',
-          background: 'var(--qg-bg-card, #0a1628)',
-          border: '1px solid var(--qg-border)',
           borderRadius: 12, padding: 24,
           display: 'flex', flexDirection: 'column',
         }}

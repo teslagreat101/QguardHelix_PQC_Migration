@@ -205,7 +205,7 @@ export default function Dashboard() {
           <RecommendationsPanel summary={summary} loading={loading} />
           
           {/* Quick Actions / Status */}
-          <div className="rounded-xl border border-gold/15 bg-[#0f1428]/45 backdrop-blur-md p-6 overflow-hidden relative">
+          <div className="rounded-xl border p-6 overflow-hidden relative glass-panel">
             <div className="absolute -right-4 -bottom-4 opacity-5">
                 <Shield className="w-32 h-32 text-gold" />
             </div>
