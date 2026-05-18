@@ -65,7 +65,7 @@ const HERO_LINE_TWO_PREFIX = 'Clock is ';
 const HERO_TICKING_WORD = 'TICKING';
 const HERO_CHARACTER_COUNT = HERO_LINE_ONE.length + HERO_LINE_TWO_PREFIX.length + HERO_TICKING_WORD.length;
 const HERO_TYPE_INTERVAL_MS = 72;
-const QUANTUM_MATURITY_TARGET = new Date(2033, 8, 9, 0, 0, 0);
+const QUANTUM_MATURITY_TARGET = new Date(2029, 8, 9, 0, 0, 0);
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const MS_PER_HOUR = 60 * 60 * 1000;
 const MS_PER_MINUTE = 60 * 1000;
@@ -1460,14 +1460,10 @@ const InactionCard = ({ risk, i }: any) => {
   );
 };
 
-const QUANTUM_THREAT_SLIDES = [
-  '/slideshow/pqc1.png',
-  '/slideshow/pqc2.png',
-  '/slideshow/pqc3.png',
-  '/slideshow/pqc4.png',
-  '/slideshow/pqc5.png',
-  '/slideshow/pqc6.png'
-];
+const slideModules = import.meta.glob('/public/slideshow/*.{png,jpg,jpeg,gif,webp}', { eager: true, query: '?url', import: 'default' });
+const QUANTUM_THREAT_SLIDES = Object.keys(slideModules)
+  .map(key => key.replace('/public', ''))
+  .sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
 
 function QuantumThreatSlideshow() {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -1737,12 +1733,12 @@ export default function App() {
                   <div className="quantum-countdown relative z-20">
                     <div className="quantum-countdown__title-row">
                       <span className="quantum-countdown__rail" />
-                      <h2 className="quantum-countdown__title">Quantum Threat &amp; Readiness Timeline</h2>
+                      <h2 className="quantum-countdown__title">Projected PQC Migration Urgency Timeline</h2>
                       <span className="quantum-countdown__rail" />
                     </div>
                     <p className="quantum-countdown__subtitle">
-                      Projected development of quantum computing capabilities<br />
-                      and post-quantum migration urgency
+                      Industry migration timelines are accelerating as quantum research,<br />
+                      regulatory mandates, and cryptographic risk exposure continue to evolve.
                     </p>
 
                     <div className="quantum-countdown__panel" aria-label="Time remaining until large-scale quantum threat maturity">
@@ -2415,3 +2411,6 @@ export default function App() {
 }
 
 // Custom Cursor or other small details can be added here
+
+
+
