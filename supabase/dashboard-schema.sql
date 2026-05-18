@@ -510,14 +510,86 @@ CREATE INDEX IF NOT EXISTS idx_psr_scan ON pqc_scan_results(scan_session_id);
 CREATE TABLE IF NOT EXISTS vault_files (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL,
-    file_name VARCHAR(255) NOT NULL,
-    file_size BIGINT,
-    encryption_algorithm VARCHAR(100),
-    is_locked BOOLEAN DEFAULT TRUE,
+    folder_id UUID,
+
+    -- Original File Info
+    original_filename TEXT NOT NULL,
+    encrypted_filename TEXT,
+    mime_type TEXT NOT NULL DEFAULT 'application/octet-stream',
+
+    -- Size Information
+    original_size BIGINT NOT NULL DEFAULT 0,
+    encrypted_size BIGINT,
+    compression_ratio NUMERIC(5,2),
+
+    -- Storage
+    storage_path TEXT,
+    storage_bucket TEXT DEFAULT 'vault-encrypted',
+    checksum_sha256 TEXT,
+
+    -- Post-Quantum Encryption Metadata
+    encryption_status VARCHAR(100) NOT NULL DEFAULT 'pending',
+    encryption_algorithm TEXT DEFAULT 'ML-KEM-768+AES-256-GCM',
+    algorithm_version TEXT DEFAULT 'v2.0',
+
+    -- ML-KEM-768 Encapsulated Key
+    kem_ciphertext TEXT,
+
+    -- AES-256-GCM Parameters
+    aes_nonce TEXT,
+    aes_auth_tag TEXT,
+
+    -- Envelope Encryption Metadata
+    key_derivation_meta JSONB,
+    envelope_meta JSONB,
+
+    -- Integrity Verification
+    content_hash TEXT,
+    encrypted_content_hash TEXT,
+    aad_hash TEXT,
+
+    -- Key References
+    encryption_key_id UUID,
+    key_rotation_status TEXT DEFAULT 'current',
+    last_rotated_at TIMESTAMP WITH TIME ZONE,
+
+    -- ML-DSA-65 Signature Metadata
     signature TEXT,
-    metadata JSONB DEFAULT '{}',
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    signing_key_id UUID,
+    ml_dsa_public_key_ref TEXT,
+    signature_status VARCHAR(50) DEFAULT 'unverified',
+    signed_at TIMESTAMP WITH TIME ZONE,
+
+    -- Versioning
+    version INT NOT NULL DEFAULT 1,
+    is_latest BOOLEAN NOT NULL DEFAULT TRUE,
+    parent_version_id UUID,
+    version_notes TEXT,
+
+    -- Processing & Status
+    processing_status VARCHAR(50) DEFAULT 'queued',
+    upload_session_id UUID,
+    error_message TEXT,
+    retry_count INT NOT NULL DEFAULT 0,
+    max_retries INT NOT NULL DEFAULT 3,
+
+    -- Soft Delete / Trash
+    is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
+    deleted_at TIMESTAMP WITH TIME ZONE,
+    permanent_delete_after TIMESTAMP WITH TIME ZONE,
+
+    -- Timestamps
+    uploaded_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    encrypted_at TIMESTAMP WITH TIME ZONE,
+    processed_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+
+    -- Legacy compatibility columns
+    file_name VARCHAR(255),
+    file_size BIGINT,
+    is_locked BOOLEAN DEFAULT TRUE,
+    metadata JSONB DEFAULT '{}'
 );
 
 ALTER TABLE vault_files ENABLE ROW LEVEL SECURITY;
@@ -527,6 +599,12 @@ CREATE POLICY vault_files_user_isolation ON vault_files
     USING (user_id = auth.uid())
     WITH CHECK (user_id = auth.uid());
 CREATE INDEX IF NOT EXISTS idx_vf_user ON vault_files(user_id);
+CREATE INDEX IF NOT EXISTS idx_vf_folder ON vault_files(folder_id, is_deleted);
+CREATE INDEX IF NOT EXISTS idx_vf_status ON vault_files(encryption_status);
+CREATE INDEX IF NOT EXISTS idx_vf_processing ON vault_files(processing_status);
+CREATE INDEX IF NOT EXISTS idx_vf_latest ON vault_files(user_id, is_latest, is_deleted);
+CREATE INDEX IF NOT EXISTS idx_vf_uploaded ON vault_files(user_id, uploaded_at DESC);
+CREATE INDEX IF NOT EXISTS idx_vf_hash ON vault_files(content_hash);
 
 -- ============================================================
 -- 12. VAULT AUDIT LOGS

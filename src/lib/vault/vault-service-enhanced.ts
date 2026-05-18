@@ -565,9 +565,22 @@ export async function fetchVaultFiles(folderId?: string | null): Promise<VaultFi
   return withRetry(async () => {
     await getAuthenticatedUser()
 
+    // Security: select only non-sensitive columns for list views.
+    // Crypto metadata (kem_ciphertext, aes_nonce, envelope_meta, signature)
+    // is fetched on-demand at decrypt time only.
+    const SAFE_FILE_COLS = [
+      'id', 'user_id', 'folder_id', 'original_filename', 'encrypted_filename',
+      'mime_type', 'original_size', 'encrypted_size',
+      'encryption_status', 'encryption_algorithm',
+      'signature_status', 'encryption_key_id', 'signing_key_id',
+      'is_deleted', 'is_latest', 'version',
+      'processing_status', 'error_message',
+      'uploaded_at', 'encrypted_at', 'created_at', 'updated_at',
+    ].join(',')
+
     let query = supabase
       .from('vault_files')
-      .select('*')
+      .select(SAFE_FILE_COLS)
       .eq('is_deleted', false)
       .eq('is_latest', true)
       .order('created_at', { ascending: false })
@@ -589,9 +602,19 @@ export async function fetchAllVaultFiles(): Promise<VaultFileEntry[]> {
   return withRetry(async () => {
     await getAuthenticatedUser()
 
+    const SAFE_FILE_COLS = [
+      'id', 'user_id', 'folder_id', 'original_filename', 'encrypted_filename',
+      'mime_type', 'original_size', 'encrypted_size',
+      'encryption_status', 'encryption_algorithm',
+      'signature_status', 'encryption_key_id', 'signing_key_id',
+      'is_deleted', 'is_latest', 'version',
+      'processing_status', 'error_message',
+      'uploaded_at', 'encrypted_at', 'created_at', 'updated_at',
+    ].join(',')
+
     const { data, error } = await supabase
       .from('vault_files')
-      .select('*')
+      .select(SAFE_FILE_COLS)
       .eq('is_deleted', false)
       .eq('is_latest', true)
       .order('uploaded_at', { ascending: false })
@@ -606,9 +629,19 @@ export async function fetchRecentFiles(limit = 10): Promise<VaultFileEntry[]> {
   return withRetry(async () => {
     await getAuthenticatedUser()
 
+    const SAFE_FILE_COLS = [
+      'id', 'user_id', 'folder_id', 'original_filename', 'encrypted_filename',
+      'mime_type', 'original_size', 'encrypted_size',
+      'encryption_status', 'encryption_algorithm',
+      'signature_status', 'encryption_key_id', 'signing_key_id',
+      'is_deleted', 'is_latest', 'version',
+      'processing_status', 'error_message',
+      'uploaded_at', 'encrypted_at', 'created_at', 'updated_at',
+    ].join(',')
+
     const { data, error } = await supabase
       .from('vault_files')
-      .select('*')
+      .select(SAFE_FILE_COLS)
       .eq('is_deleted', false)
       .eq('is_latest', true)
       .order('uploaded_at', { ascending: false })
@@ -1342,21 +1375,32 @@ export async function logAudit(
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
-    // Get client info
-    const ipAddress = typeof window !== 'undefined' ? undefined : undefined
-    const userAgent = typeof window !== 'undefined' ? navigator.userAgent : undefined
-
-    await supabase.from('vault_audit_logs').insert({
-      user_id: user.id,
-      event_type: eventType,
-      severity,
-      resource_type: resourceType,
-      resource_id: resourceId,
-      description,
-      ip_address: ipAddress,
-      user_agent: userAgent,
-      metadata: metadata || {},
+    // Security: Use server-validated RPC instead of direct INSERT.
+    // This prevents injection of arbitrary severity/event types and
+    // enforces field-length truncation on the server side.
+    const { error: rpcError } = await supabase.rpc('log_vault_audit_event', {
+      p_event_type: eventType,
+      p_severity: severity,
+      p_result: 'success',
+      p_resource_type: resourceType,
+      p_resource_id: resourceId,
+      p_description: description,
+      p_metadata: metadata || {},
     })
+
+    // Fallback to direct insert if the RPC doesn't exist yet
+    // (e.g. hardening migration not applied)
+    if (rpcError && (rpcError.code === 'PGRST202' || rpcError.message?.includes('could not find the function'))) {
+      await supabase.from('vault_audit_logs').insert({
+        user_id: user.id,
+        event_type: eventType.slice(0, 100),
+        severity,
+        resource_type: resourceType?.slice(0, 50),
+        resource_id: resourceId?.slice(0, 255),
+        description: description.slice(0, 1000),
+        metadata: metadata || {},
+      })
+    }
   } catch {
     // Fail silently - audit logging should not break operations
     console.warn('Failed to log audit event:', eventType)
@@ -1490,9 +1534,19 @@ export async function fetchVaultStats(): Promise<VaultStats> {
     const user = await getAuthenticatedUser()
 
     // Get profile
+    // Security: select only the columns needed for stats display.
+    // Excludes KDF internals, lockout config, and security settings.
+    const SAFE_PROFILE_COLS = [
+      'id', 'user_id', 'display_name',
+      'storage_used', 'storage_quota', 'storage_warning_sent',
+      'file_count', 'folder_count', 'encrypted_file_count',
+      'vault_created', 'vault_locked',
+      'created_at', 'updated_at',
+    ].join(',')
+
     const { data: profile, error: profileError } = await supabase
       .from('vault_user_profiles')
-      .select('*')
+      .select(SAFE_PROFILE_COLS)
       .eq('user_id', user.id)
       .single()
 

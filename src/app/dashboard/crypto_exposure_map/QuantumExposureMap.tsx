@@ -30,6 +30,8 @@ const TYPE_ICONS = {
   vault: Lock,
 };
 
+const GLASS_PANEL_CLASSES = 'group relative overflow-hidden rounded-xl border border-[#FFD36B]/20 bg-[#0f1428]/45 backdrop-blur-xl shadow-[inset_0_1px_0_rgba(255,255,255,0.08),inset_0_-24px_60px_rgba(255,211,107,0.03),0_0_40px_rgba(255,211,107,0.14)] transition-all duration-500 hover:-translate-y-1 hover:border-[#FFD36B]/70 hover:bg-[#0f1428]/65 hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.3),inset_0_-24px_60px_rgba(255,211,107,0.15),0_8px_30px_rgba(0,0,0,0.5),0_0_60px_rgba(255,211,107,0.5),0_0_120px_rgba(255,211,107,0.2)] hover:z-10 before:pointer-events-none before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-[#FFF4C0]/70 before:to-transparent before:transition-all before:duration-500 group-hover:before:opacity-100 group-hover:before:shadow-[0_0_15px_rgba(255,211,107,0.9)] group-hover:before:via-[#FFF4C0] after:pointer-events-none after:absolute after:-right-24 after:-top-24 after:h-48 after:w-48 after:rounded-full after:bg-[#FFD36B]/10 after:blur-3xl after:transition-all after:duration-500 group-hover:after:opacity-100 group-hover:after:bg-[#FFD36B]/25 group-hover:after:blur-[36px] text-white';
+
 export default function QuantumExposureMap({ data, loading, onRefresh }: Props) {
   const [selectedNode, setSelectedNode] = useState<ExposureNode | null>(null);
   const [hoveredNode, setHoveredNode] = useState<string | null>(null);
@@ -84,7 +86,7 @@ export default function QuantumExposureMap({ data, loading, onRefresh }: Props) 
 
   if (loading && data.nodes.length === 0) {
     return (
-      <div className="h-[500px] flex items-center justify-center border rounded-xl glass-panel">
+      <div className={`h-[500px] flex items-center justify-center ${GLASS_PANEL_CLASSES}`}>
         <div className="text-center">
           <div className="w-12 h-12 border-2 border-gold/30 border-t-gold rounded-full animate-spin mx-auto mb-4" />
           <p className="text-[10px] text-gold/50 uppercase font-black tracking-widest">Synthesizing Topology...</p>
@@ -95,7 +97,7 @@ export default function QuantumExposureMap({ data, loading, onRefresh }: Props) 
 
   if (!loading && data.nodes.length === 0) {
     return (
-      <div className="h-[500px] flex items-center justify-center border rounded-xl p-8 glass-panel">
+      <div className={`h-[500px] flex items-center justify-center p-8 ${GLASS_PANEL_CLASSES}`}>
         <div className="text-center max-w-sm">
           <div className="w-16 h-16 bg-gold/5 border border-gold/20 rounded-full flex items-center justify-center mx-auto mb-6">
             <Globe className="w-8 h-8 text-gold/30" />
@@ -117,11 +119,11 @@ export default function QuantumExposureMap({ data, loading, onRefresh }: Props) 
 
   return (
     <div className="grid lg:grid-cols-4 gap-6">
-      <div className="lg:col-span-3 rounded-xl border relative overflow-hidden h-[500px] glass-panel">
+      <div className={`lg:col-span-3 h-[500px] ${GLASS_PANEL_CLASSES}`}>
         <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" />
         
         <div className="absolute top-4 left-4 z-20 flex gap-2">
-            <button onClick={onRefresh} className="p-2 border rounded hover:transition-colors group glass-panel">
+            <button onClick={onRefresh} className={`p-2 hover:transition-colors ${GLASS_PANEL_CLASSES.replace('rounded-xl', 'rounded')}`}>
                 <RefreshCw className={`w-3.5 h-3.5 text-gold/60 group-hover:text-gold ${loading ? 'animate-spin' : ''}`} />
             </button>
         </div>
@@ -207,7 +209,7 @@ export default function QuantumExposureMap({ data, loading, onRefresh }: Props) 
       </div>
 
       {/* Detail Inspector */}
-      <div className="rounded-xl border p-5 flex flex-col h-[500px] glass-panel">
+      <div className={`p-5 flex flex-col h-[500px] ${GLASS_PANEL_CLASSES}`}>
         <h3 className="text-xs font-black uppercase tracking-[0.2em] text-white/50 mb-4 flex items-center gap-2">
           <Eye className="h-3.5 w-3.5 text-gold/50" />
           Node Inspector

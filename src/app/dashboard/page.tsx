@@ -11,6 +11,9 @@ import MetricCard from './metric_card/MetricCard'
 import QuantumExposureMap from './crypto_exposure_map/QuantumExposureMap'
 import SecurityEventsPanel from './security_events_panel/SecurityEventsPanel'
 import RecommendationsPanel from './recommendation_panel/RecommendationsPanel'
+import TelemetryFeatures from './TelemetryFeatures'
+
+const GLASS_PANEL_CLASSES = 'group relative overflow-hidden rounded-xl border border-[#FFD36B]/20 bg-[#0f1428]/45 backdrop-blur-xl shadow-[inset_0_1px_0_rgba(255,255,255,0.08),inset_0_-24px_60px_rgba(255,211,107,0.03),0_0_40px_rgba(255,211,107,0.14)] transition-all duration-500 hover:-translate-y-1 hover:border-[#FFD36B]/70 hover:bg-[#0f1428]/65 hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.3),inset_0_-24px_60px_rgba(255,211,107,0.15),0_8px_30px_rgba(0,0,0,0.5),0_0_60px_rgba(255,211,107,0.5),0_0_120px_rgba(255,211,107,0.2)] hover:z-10 before:pointer-events-none before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-[#FFF4C0]/70 before:to-transparent before:transition-all before:duration-500 group-hover:before:opacity-100 group-hover:before:shadow-[0_0_15px_rgba(255,211,107,0.9)] group-hover:before:via-[#FFF4C0] after:pointer-events-none after:absolute after:-right-24 after:-top-24 after:h-48 after:w-48 after:rounded-full after:bg-[#FFD36B]/10 after:blur-3xl after:transition-all after:duration-500 group-hover:after:opacity-100 group-hover:after:bg-[#FFD36B]/25 group-hover:after:blur-[36px] text-white';
 
 export default function Dashboard() {
   const [summary, setSummary] = useState<DashboardSummary | null>(null)
@@ -198,14 +201,16 @@ export default function Dashboard() {
           <section className="space-y-4 h-[450px]">
             <SecurityEventsPanel events={events} loading={loading} />
           </section>
+
         </div>
+
 
         {/* Sidebar Insights */}
         <aside className="space-y-8">
           <RecommendationsPanel summary={summary} loading={loading} />
           
           {/* Quick Actions / Status */}
-          <div className="rounded-xl border p-6 overflow-hidden relative glass-panel">
+          <div className={`p-6 ${GLASS_PANEL_CLASSES}`}>
             <div className="absolute -right-4 -bottom-4 opacity-5">
                 <Shield className="w-32 h-32 text-gold" />
             </div>
@@ -239,6 +244,11 @@ export default function Dashboard() {
         </aside>
       </div>
       
+      {/* New Telemetry Features */}
+      <section className="mt-8 animate-in fade-in duration-700 delay-500">
+        <TelemetryFeatures />
+      </section>
+
       {/* Footer Branding */}
       <footer className="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
         <div className="flex items-center gap-2 opacity-30">

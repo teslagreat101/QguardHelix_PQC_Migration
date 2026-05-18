@@ -140,8 +140,10 @@ function CyberCard({
         overflow: 'hidden',
         borderStyle: 'solid',
         borderWidth: 1,
-        borderColor: status.healthy ? 'rgba(212,175,55,0.56)' : 'rgba(255,84,112,0.42)',
         borderTopColor: 'rgba(255,231,151,0.72)',
+        borderRightColor: status.healthy ? 'rgba(212,175,55,0.56)' : 'rgba(255,84,112,0.42)',
+        borderBottomColor: status.healthy ? 'rgba(212,175,55,0.56)' : 'rgba(255,84,112,0.42)',
+        borderLeftColor: status.healthy ? 'rgba(212,175,55,0.56)' : 'rgba(255,84,112,0.42)',
         background:
           'linear-gradient(135deg, rgba(255,214,104,0.13), rgba(17,14,6,0.56) 38%, rgba(0,0,0,0.64)), rgba(8,7,2,0.38)',
         clipPath: 'polygon(4% 0, 96% 0, 100% 16%, 100% 84%, 96% 100%, 4% 100%, 0 84%, 0 16%)',

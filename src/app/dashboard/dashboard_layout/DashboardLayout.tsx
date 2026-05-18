@@ -6,7 +6,8 @@ import {
   Eye, Route, Layers, Globe, Clock, ClipboardCheck,
   Rocket, Radio, GitCompare, BarChart3, ChevronLeft,
   ChevronRight, Menu, X, ScanSearch, ChevronDown,
-  Cpu, Lock, Fingerprint, Award, Coins, MessageSquareLock, Cloud, Sparkles, Database, UserCog
+  Cpu, Lock, Fingerprint, Award, Coins, MessageSquareLock, Cloud, Sparkles, Database, UserCog,
+  Activity, EyeOff, Brain, Settings, Zap, Network, Box, Microscope, LineChart, Target, Shield, CheckCircle, UserCheck, MonitorCheck, PieChart, ShieldCheck, Scale, FileText, Layout, Key, Webhook, FileWarning, Search, Ghost
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/auth-context';
@@ -14,6 +15,7 @@ import { useAuth } from '@/contexts/auth-context';
 const NAV_SECTIONS = [
   {
     label: 'Core',
+    collapsible: true,
     items: [
       { name: 'Overview', path: '/dashboard', icon: LayoutDashboard },
       { name: 'Quantum Risk', path: '/dashboard/quantum-risk', icon: Eye },
@@ -36,34 +38,93 @@ const NAV_SECTIONS = [
   },
   {
     label: 'Discovery',
+    collapsible: true,
     items: [
       { name: 'PQC Scanner', path: '/dashboard/scanner', icon: ScanSearch },
       { name: 'CBOM Explorer', path: '/dashboard/cbom', icon: Layers },
       { name: 'Crypto Exposure', path: '/dashboard/crypto-exposure', icon: Globe },
       { name: 'Assets & CBOM', path: '/dashboard/assets', icon: MapIcon },
+      { name: 'Runtime Discovery', path: '/dashboard/runtime-discovery', icon: Search },
+      { name: 'Shadow Crypto', path: '/dashboard/shadow-crypto', icon: Ghost },
+      { name: 'Asset Intelligence', path: '/dashboard/asset-intelligence', icon: Brain },
     ],
   },
   {
     label: 'Operations',
+    collapsible: true,
     items: [
       { name: 'Migration Timeline', path: '/dashboard/migration-timeline', icon: Clock },
       { name: 'Live Migration Ops', path: '/dashboard/live-migration', icon: Rocket },
       { name: 'Migration Terminal', path: '/dashboard/migration-terminal', icon: Terminal },
+      { name: 'Hybrid Crypto Manager', path: '/dashboard/hybrid-crypto', icon: Settings },
+      { name: 'Crypto-Agility Engine', path: '/dashboard/crypto-agility', icon: Zap },
+      { name: 'PQC Orchestration', path: '/dashboard/pqc-orchestration', icon: Network },
+      { name: 'Migration Sandbox', path: '/dashboard/migration-sandbox', icon: Box },
     ],
   },
   {
     label: 'Intelligence',
+    collapsible: true,
     items: [
       { name: 'Threat Intel', path: '/dashboard/threat-intel', icon: Radio },
       { name: 'Drift Detection', path: '/dashboard/drift', icon: GitCompare },
       { name: 'Vulnerabilities', path: '/dashboard/vulnerabilities', icon: ShieldAlert },
+      { name: 'Runtime Cryptographic Intelligence', path: '/dashboard/runtime-crypto-intel', icon: Microscope },
+      { name: 'Behavioral Analytics', path: '/dashboard/behavioral-analytics', icon: Activity },
+      { name: 'Telemetry Correlation', path: '/dashboard/telemetry-correlation', icon: LineChart },
+      { name: 'Quantum Risk Scoring', path: '/dashboard/quantum-risk-scoring', icon: Target },
+    ],
+  },
+  {
+    label: 'Observability',
+    collapsible: true,
+    items: [
+      { name: 'Runtime Visibility', path: '/dashboard/runtime-visibility', icon: Eye },
+      { name: 'TLS Telemetry', path: '/dashboard/tls-telemetry', icon: Shield },
+      { name: 'PKI Visibility', path: '/dashboard/pki-visibility', icon: Award },
+      { name: 'Protocol Analytics', path: '/dashboard/protocol-analytics', icon: Activity },
+      { name: 'Encryption Monitoring', path: '/dashboard/encryption-monitoring', icon: Lock },
+    ],
+  },
+  {
+    label: 'Trust Center',
+    collapsible: true,
+    items: [
+      { name: 'Continuous Trust Validation', path: '/dashboard/continuous-trust', icon: CheckCircle },
+      { name: 'Identity Trust', path: '/dashboard/identity-trust', icon: UserCheck },
+      { name: 'Device Trust', path: '/dashboard/device-trust', icon: MonitorCheck },
+      { name: 'Trust Analytics', path: '/dashboard/trust-analytics', icon: PieChart },
+      { name: 'Zero Trust Validation', path: '/dashboard/zero-trust', icon: ShieldCheck },
     ],
   },
   {
     label: 'Governance',
+    collapsible: true,
     items: [
       { name: 'Compliance', path: '/dashboard/compliance', icon: ClipboardCheck },
       { name: 'Hybrid Metrics', path: '/dashboard/hybrid-metrics', icon: BarChart3 },
+      { name: 'Quantum Governance', path: '/dashboard/quantum-governance', icon: Scale },
+      { name: 'Crypto Policies', path: '/dashboard/crypto-policies', icon: FileText },
+      { name: 'Audit Vault', path: '/dashboard/audit-vault', icon: Database },
+      { name: 'Executive Risk Dashboard', path: '/dashboard/executive-risk', icon: Layout },
+      { name: 'Regulatory Mapping', path: '/dashboard/regulatory-mapping', icon: MapIcon },
+    ],
+  },
+  {
+    label: 'Telemetry',
+    collapsible: true,
+    items: [
+      { name: 'Runtime Telemetry', path: '/dashboard/runtime-telemetry', icon: Activity },
+      { name: 'Certificate Telemetry', path: '/dashboard/certificate-telemetry', icon: FileWarning },
+      { name: 'Key Analytics', path: '/dashboard/key-analytics', icon: Key },
+      { name: 'API Encryption Monitoring', path: '/dashboard/api-encryption', icon: Webhook },
+      { name: 'Multi-Cloud Telemetry', path: '/dashboard/multi-cloud-telemetry', icon: Cloud },
+    ],
+  },
+  {
+    label: 'System',
+    collapsible: true,
+    items: [
       { name: 'Profile & Settings', path: '/dashboard/settings', icon: UserCog },
     ],
   },
@@ -75,7 +136,16 @@ export default function DashboardLayout() {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
-    'Quantum Tools': false
+    'Core': true,
+    'Quantum Tools': false,
+    'Discovery': false,
+    'Operations': false,
+    'Intelligence': false,
+    'Observability': false,
+    'Trust Center': false,
+    'Governance': false,
+    'Telemetry': false,
+    'System': false
   });
 
   const toggleSection = (label: string) => {

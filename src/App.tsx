@@ -35,6 +35,38 @@ import SharedFilePage from './app/vault/shared/[id]/page';
 import QuantumGovernancePage from './app/dashboard/quantum-governance/page';
 import QuantumQrngPage from './app/dashboard/qrng/page';
 
+// Newly Scaffolded Modules
+import RuntimeDiscoveryPage from './app/dashboard/runtime-discovery/page';
+import ShadowCryptoPage from './app/dashboard/shadow-crypto/page';
+import AssetIntelligencePage from './app/dashboard/asset-intelligence/page';
+import HybridCryptoManagerPage from './app/dashboard/hybrid-crypto/page';
+import CryptoAgilityEnginePage from './app/dashboard/crypto-agility/page';
+import PqcOrchestrationPage from './app/dashboard/pqc-orchestration/page';
+import MigrationSandboxPage from './app/dashboard/migration-sandbox/page';
+import RuntimeCryptoIntelPage from './app/dashboard/runtime-crypto-intel/page';
+import BehavioralAnalyticsPage from './app/dashboard/behavioral-analytics/page';
+import TelemetryCorrelationPage from './app/dashboard/telemetry-correlation/page';
+import QuantumRiskScoringPage from './app/dashboard/quantum-risk-scoring/page';
+import RuntimeVisibilityPage from './app/dashboard/runtime-visibility/page';
+import TlsTelemetryPage from './app/dashboard/tls-telemetry/page';
+import PkiVisibilityPage from './app/dashboard/pki-visibility/page';
+import ProtocolAnalyticsPage from './app/dashboard/protocol-analytics/page';
+import EncryptionMonitoringPage from './app/dashboard/encryption-monitoring/page';
+import ContinuousTrustPage from './app/dashboard/continuous-trust/page';
+import IdentityTrustPage from './app/dashboard/identity-trust/page';
+import DeviceTrustPage from './app/dashboard/device-trust/page';
+import TrustAnalyticsPage from './app/dashboard/trust-analytics/page';
+import ZeroTrustPage from './app/dashboard/zero-trust/page';
+import CryptoPoliciesPage from './app/dashboard/crypto-policies/page';
+import AuditVaultPage from './app/dashboard/audit-vault/page';
+import ExecutiveRiskPage from './app/dashboard/executive-risk/page';
+import RegulatoryMappingPage from './app/dashboard/regulatory-mapping/page';
+import RuntimeTelemetryPage from './app/dashboard/runtime-telemetry/page';
+import CertificateTelemetryPage from './app/dashboard/certificate-telemetry/page';
+import KeyAnalyticsPage from './app/dashboard/key-analytics/page';
+import ApiEncryptionPage from './app/dashboard/api-encryption/page';
+import MultiCloudTelemetryPage from './app/dashboard/multi-cloud-telemetry/page';
+
 export default function App() {
   return (
     <AuthProvider>
@@ -124,6 +156,38 @@ export default function App() {
 
           <Route path="qrng" element={<QuantumQrngPage />} />
           <Route path="quantum-qrng" element={<QuantumQrngPage />} />
+
+          {/* New Scaffolding Routes */}
+          <Route path="runtime-discovery" element={<RuntimeDiscoveryPage />} />
+          <Route path="shadow-crypto" element={<ShadowCryptoPage />} />
+          <Route path="asset-intelligence" element={<AssetIntelligencePage />} />
+          <Route path="hybrid-crypto" element={<HybridCryptoManagerPage />} />
+          <Route path="crypto-agility" element={<CryptoAgilityEnginePage />} />
+          <Route path="pqc-orchestration" element={<PqcOrchestrationPage />} />
+          <Route path="migration-sandbox" element={<MigrationSandboxPage />} />
+          <Route path="runtime-crypto-intel" element={<RuntimeCryptoIntelPage />} />
+          <Route path="behavioral-analytics" element={<BehavioralAnalyticsPage />} />
+          <Route path="telemetry-correlation" element={<TelemetryCorrelationPage />} />
+          <Route path="quantum-risk-scoring" element={<QuantumRiskScoringPage />} />
+          <Route path="runtime-visibility" element={<RuntimeVisibilityPage />} />
+          <Route path="tls-telemetry" element={<TlsTelemetryPage />} />
+          <Route path="pki-visibility" element={<PkiVisibilityPage />} />
+          <Route path="protocol-analytics" element={<ProtocolAnalyticsPage />} />
+          <Route path="encryption-monitoring" element={<EncryptionMonitoringPage />} />
+          <Route path="continuous-trust" element={<ContinuousTrustPage />} />
+          <Route path="identity-trust" element={<IdentityTrustPage />} />
+          <Route path="device-trust" element={<DeviceTrustPage />} />
+          <Route path="trust-analytics" element={<TrustAnalyticsPage />} />
+          <Route path="zero-trust" element={<ZeroTrustPage />} />
+          <Route path="crypto-policies" element={<CryptoPoliciesPage />} />
+          <Route path="audit-vault" element={<AuditVaultPage />} />
+          <Route path="executive-risk" element={<ExecutiveRiskPage />} />
+          <Route path="regulatory-mapping" element={<RegulatoryMappingPage />} />
+          <Route path="runtime-telemetry" element={<RuntimeTelemetryPage />} />
+          <Route path="certificate-telemetry" element={<CertificateTelemetryPage />} />
+          <Route path="key-analytics" element={<KeyAnalyticsPage />} />
+          <Route path="api-encryption" element={<ApiEncryptionPage />} />
+          <Route path="multi-cloud-telemetry" element={<MultiCloudTelemetryPage />} />
         </Route>
       </Routes>
     </Router>
