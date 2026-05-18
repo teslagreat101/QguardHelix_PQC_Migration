@@ -653,6 +653,46 @@ export async function fetchRecentFiles(limit = 10): Promise<VaultFileEntry[]> {
   })
 }
 
+/**
+ * Fetches vault files with the metadata needed for dashboard health checks.
+ * Includes envelope_meta, integrity hashes, signature status — the fields that
+ * the health-check functions (hasRequiredPqcEnvelope, hasRequiredIntegrityStack,
+ * hasZeroKnowledgeEnvelope) evaluate. These are NOT decryptable secrets; they're
+ * algorithm labels, ciphertext references, and hash digests.
+ */
+export async function fetchVaultFilesWithHealth(): Promise<VaultFileEntry[]> {
+  return withRetry(async () => {
+    await getAuthenticatedUser()
+
+    const HEALTH_FILE_COLS = [
+      // Core display fields
+      'id', 'user_id', 'folder_id', 'original_filename', 'encrypted_filename',
+      'mime_type', 'original_size', 'encrypted_size',
+      'encryption_status', 'encryption_algorithm',
+      'signature_status', 'encryption_key_id', 'signing_key_id',
+      'is_deleted', 'is_latest', 'version',
+      'processing_status', 'error_message',
+      'uploaded_at', 'encrypted_at', 'created_at', 'updated_at',
+      // Health-assessment fields (non-secret metadata)
+      'envelope_meta', 'key_derivation_meta',
+      'kem_ciphertext', 'aes_nonce', 'aes_auth_tag',
+      'content_hash', 'encrypted_content_hash', 'aad_hash',
+      'signature',
+    ].join(',')
+
+    const { data, error } = await supabase
+      .from('vault_files')
+      .select(HEALTH_FILE_COLS)
+      .eq('is_deleted', false)
+      .eq('is_latest', true)
+      .order('uploaded_at', { ascending: false })
+
+    if (error) handleSupabaseError(error, 'fetching files with health data')
+
+    return (data || []).map(mapFileToEntry)
+  })
+}
+
 export interface UploadVaultFileOptions {
   folderId?: string | null
   encryptionData?: {

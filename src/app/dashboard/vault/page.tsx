@@ -355,6 +355,7 @@ export default function VaultPage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [currentFolderId, setCurrentFolderId] = useState<string | null>(null)
   const [moveModalTarget, setMoveModalTarget] = useState<{ id: string; name: string; type: 'file' | 'folder' } | null>(null)
+  const [vaultStats, setVaultStats] = useState<vaultSvc.VaultStats | null>(null)
 
   // ─── Alert dialog (replaces native alert() for a professional UX) ───
   interface AlertState {
@@ -374,8 +375,9 @@ export default function VaultPage() {
   const zkKeysRef = useRef<ZKMasterKeys | null>(null)
   const filesRef = useRef<VaultFileEntry[]>([])
 
-  const usedStorage = files.reduce((sum, f) => sum + f.size, 0)
-  const maxStorage = 104857600
+  // Real storage metrics from the user's vault profile
+  const usedStorage = vaultStats?.storageUsed ?? files.reduce((sum, f) => sum + f.size, 0)
+  const maxStorage = vaultStats?.storageQuota ?? 10737418240 // 10GB default from profile
 
   // Keep refs synced with the latest state for stable callbacks below.
   useEffect(() => { zkKeysRef.current = zkKeys }, [zkKeys])
@@ -398,7 +400,10 @@ export default function VaultPage() {
 
   const fetchFiles = useCallback(async () => {
     try {
-      const allFiles = await vaultSvc.fetchAllVaultFiles()
+      // Use fetchVaultFilesWithHealth so we get the envelope metadata
+      // (algorithm labels, integrity hashes, signature status) required
+      // by the dashboard health checks (ML-KEM, ML-DSA, ZK cards).
+      const allFiles = await vaultSvc.fetchVaultFilesWithHealth()
       setFetchError(null)
       setFiles(allFiles)
     } catch (err) {
@@ -439,14 +444,24 @@ export default function VaultPage() {
     }
   }, [])
 
+  const fetchStats = useCallback(async () => {
+    try {
+      const stats = await vaultSvc.fetchVaultStats()
+      setVaultStats(stats)
+    } catch (err) {
+      console.error('Failed to fetch vault stats:', err)
+    }
+  }, [])
+
   useEffect(() => {
     if (session?.access_token) {
       fetchFiles()
       fetchKeys()
       fetchAudit()
       fetchSharedLinks()
+      fetchStats()
     }
-  }, [fetchFiles, fetchKeys, fetchAudit, fetchSharedLinks, session?.access_token])
+  }, [fetchFiles, fetchKeys, fetchAudit, fetchSharedLinks, fetchStats, session?.access_token])
 
   useEffect(() => {
     if (!session?.access_token) return
@@ -742,7 +757,7 @@ export default function VaultPage() {
     try {
       let file = filesRef.current.find(f => f.id === fileId) || clickedFile
       if (!file) {
-        const latestFiles = await vaultSvc.fetchAllVaultFiles()
+        const latestFiles = await vaultSvc.fetchVaultFilesWithHealth()
         setFiles(latestFiles)
         filesRef.current = latestFiles
         file = latestFiles.find(f => f.id === fileId)
